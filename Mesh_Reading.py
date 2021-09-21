@@ -4,11 +4,13 @@ Install:
 trimesh
 pyglet
 scipy
+pyrender
 
 """
 
 import trimesh
 import pyrender
+
 
 
 # attach to logger so trimesh messages will be printed to console
@@ -24,12 +26,16 @@ file = "./benchmark/db/0//m99/m99.off"
 mesh = trimesh.load(file)
 
 # preview mesh in an opengl window (need pyglet and scipy to be installed)
-mesh.show()
+mesh.show(smooth=False, line_settings={'point_size': 20, 'line_width': 1})
 
+"""
 fuze_trimesh = trimesh.load(file)
 mesh = pyrender.Mesh.from_trimesh(fuze_trimesh)
 scene = pyrender.Scene()
 scene.add(mesh)
 pyrender.Viewer(scene, use_raymond_lighting=True)
+
+"""
+
 
 
