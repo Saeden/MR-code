@@ -8,6 +8,7 @@ scipy
 """
 
 import trimesh
+import pyrender
 
 
 # attach to logger so trimesh messages will be printed to console
@@ -24,4 +25,11 @@ mesh = trimesh.load(file)
 
 # preview mesh in an opengl window (need pyglet and scipy to be installed)
 mesh.show()
+
+fuze_trimesh = trimesh.load(file)
+mesh = pyrender.Mesh.from_trimesh(fuze_trimesh)
+scene = pyrender.Scene()
+scene.add(mesh)
+pyrender.Viewer(scene, use_raymond_lighting=True)
+
 
