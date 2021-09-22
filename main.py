@@ -1,3 +1,14 @@
+"""
+To make the application work, install:
+
+trimesh
+pyglet
+scipy
+pyrender
+
+"""
+
+
 from Mesh_Reading import *
 
 def main():

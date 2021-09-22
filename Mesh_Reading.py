@@ -1,12 +1,3 @@
-"""
-Install:
-
-trimesh
-pyglet
-scipy
-pyrender
-
-"""
 
 import trimesh
 import pyrender
