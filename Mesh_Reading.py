@@ -4,6 +4,11 @@ import pyrender
 
 
 def load_mesh(filepath):
+    """
+    :param filepath: the path of the 3D object. This function can handle both .ply
+    and .off formats, as well as others.
+    :return: a loaded mesh
+    """
 
     # attach to logger so trimesh messages will be printed to console
     trimesh.util.attach_to_log()
@@ -43,9 +48,11 @@ def load_mesh(filepath):
 
 def view_scene(mesh):
     """
-    Function used to view a mesh
-    It constructs an object scene and open the passed mesh
+    Function used to view a mesh.
+    It constructs an object scene and open the passed mesh.
+    :param mesh: the mesh object that has to be displayed
     """
+
     scene = pyrender.Scene()
     scene.add(mesh)
     pyrender.Viewer(scene, use_raymond_lighting=True)
