@@ -18,9 +18,9 @@ def main():
 
     mesh = load_mesh(filepath, pyrender_mode=False)
 
-    basics(mesh)
+    show_basic_statistics(mesh)
 
-    view_scene(mesh, pyrender_mode=False, show_3Daabb=True)
+    view_scene(mesh, pyrender_mode=False, show_3Daabb=False)
 
 
 if __name__ == "__main__":
