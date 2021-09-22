@@ -42,12 +42,13 @@ def load_mesh(filepath, pyrender_mode=True):
     return raw_mesh
 
 
-def view_scene(mesh, pyrender_mode=True):
+def view_scene(mesh, pyrender_mode=True, show_3Daabb=False):
     """
     Function used to view a mesh.
     It constructs an object scene and open the passed mesh.
     :param mesh: the mesh object that has to be displayed
     :param pyrender_mode: True if open with pyrender, False if open with trimesh
+    :param show_3Daabb: True if 3D axis-aligned bounding box has to be showed, False otherwise
     """
 
     if pyrender_mode:
@@ -61,7 +62,11 @@ def view_scene(mesh, pyrender_mode=True):
         OLD ATTEMPT
         Preview mesh in an OpenGL window using trimesh (need pyglet and scipy to be installed):
         """
-        mesh.show(smooth=False, line_settings={'point_size': 20, 'line_width': 1}, flags="wireframe")
+        if show_3Daabb:
+            (mesh + mesh.bounding_box_oriented).show(smooth=False, line_settings={'point_size': 20, 'line_width': 1}, flags="wireframe")
+        else:
+            mesh.show(smooth=False, line_settings={'point_size': 20, 'line_width': 1}, flags="wireframe")
+
 
 
 
