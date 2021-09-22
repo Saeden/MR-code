@@ -63,7 +63,7 @@ def view_scene(mesh, pyrender_mode=True, show_3Daabb=False):
         Preview mesh in an OpenGL window using trimesh (need pyglet and scipy to be installed):
         """
         if show_3Daabb:
-            (mesh + mesh.bounding_box_oriented).show(smooth=False, line_settings={'point_size': 20, 'line_width': 1}, flags="wireframe")
+            (mesh + mesh.bounding_box).show(smooth=False, line_settings={'point_size': 20, 'line_width': 1}, flags="wireframe")
         else:
             mesh.show(smooth=False, line_settings={'point_size': 20, 'line_width': 1}, flags="wireframe")
 
