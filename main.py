@@ -5,6 +5,7 @@ trimesh
 pyglet
 scipy
 pyrender
+open3d
 
 """
 
@@ -15,12 +16,15 @@ def main():
     print("Multimedia Retrieval application")
 
     filepath = "./benchmark/db/0//m99/m99.off"
+    # filepath = "/Users/danieledigrandi/Desktop/bone.ply"
 
-    mesh = load_mesh(filepath, pyrender_mode=False)
+    mesh = load_mesh(filepath)
 
-    show_basic_statistics(mesh)
+    view_mesh(mesh, draw_coordinate_frame=True)
 
-    view_scene(mesh, pyrender_mode=False, show_3Daabb=False)
+    # show_basic_statistics(mesh)
+
+
 
 
 if __name__ == "__main__":
