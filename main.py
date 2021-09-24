@@ -19,7 +19,9 @@ def main():
     filename = filepath[(filepath.rfind("/") + 1):filepath.rfind(".")]
     filepath_ply = "./ply_files/colored_airplane.ply"
 
-    mesh = load_mesh(filepath)
+    mesh, face_type = load_mesh_check_type(filepath)
+
+    print("The facetype of this mesh is: "+face_type)
 
     labels_dictionary = get_complete_classification()
 

@@ -3,15 +3,15 @@ import open3d as o3d
 import os
 
 
-def load_mesh(filepath):
+def load_mesh_check_type(filepath):
     """
     Reads the mesh file located at the specified filepath,
-    and returns the mesh as open3d object.
+    and returns the mesh as an open3d object.
     Furthermore, it converts all .ply files to .off files, by exporting any .ply file
     with trimesh as a temp .off file, and then it loads the .off file.
     Then, it cancels the temp .off file.
     :param filepath: the filepath of the .ply or .off file containing the mesh.
-    :return: a TriangleMesh open3d object
+    :return: a TriangleMesh open3d object & the face type present in the mesh (triangle, quad or mix)
     """
 
     ply = False
@@ -20,6 +20,13 @@ def load_mesh(filepath):
         trimesh.exchange.export.export_mesh(mesh, './temp.off', 'off')
         filepath = './temp.off'
         ply = True
+
+    file = open(filepath, "r")
+    text = file.readlines()
+    file.close()
+    facetype = check_type(text)
+
+
     if filepath.endswith('.off'):
         mesh = o3d.io.read_triangle_mesh(filepath)
     else:
@@ -32,7 +39,28 @@ def load_mesh(filepath):
 
     print("Try to render a mesh with normals (exist: " + str(mesh.has_vertex_normals()) + ")")
 
-    return mesh
+    return mesh, facetype
+
+def check_type(text_file):
+    tri = False
+    quad = False
+    vert_face_lst = text_file[1].split()
+    for line in text_file[int(vert_face_lst[0]):]:
+        if line[0] == '3':
+            tri = True
+        elif line[0] == '4':
+            quad = True
+
+    if tri and quad:
+        return "mix"
+    elif tri:
+        return "triangles"
+    elif quad:
+        return "quads"
+    else:
+        raise ValueError('This file does not contain quads or triangles')
+
+
 
 
 def view_mesh(mesh, draw_coordinates=False, show_wireframe=False, aabbox=False):

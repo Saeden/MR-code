@@ -6,7 +6,7 @@ def show_basic_statistics(mesh, filename, labels_dictionary):
     print("\nNumber of vertices:", len(np.asarray(mesh.vertices)))
     print("Number of faces:", len(np.asarray(mesh.triangles)))
     box_points = o3d.geometry.AxisAlignedBoundingBox.get_axis_aligned_bounding_box(mesh).get_box_points()
-    print(f"Axis-aligned bounding box vertices coordinates: {np.asarray(box_points)}")
+    print(f"Axis-aligned bounding box vertices coordinates: \n{np.asarray(box_points)}")
 
     label_class = labels_dictionary.get(int(filename[1:]))
     print(f"Shape belongs to class: {label_class}")
