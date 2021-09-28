@@ -3,7 +3,7 @@ import open3d as o3d
 import os
 
 
-def load_mesh_check_type(filepath):
+def load_mesh_check_type(filepath, faces=False):
     """
     Reads the mesh file located at the specified filepath,
     and returns the mesh as an open3d object.
@@ -13,7 +13,7 @@ def load_mesh_check_type(filepath):
     :param filepath: the filepath of the .ply or .off file containing the mesh.
     :return: a TriangleMesh open3d object & the face type present in the mesh (triangle, quad or mix)
     """
-
+    facetype = None
     ply = False
     if filepath.endswith('.ply'):
         mesh = trimesh.load_mesh(filepath)
@@ -21,10 +21,11 @@ def load_mesh_check_type(filepath):
         filepath = './temp.off'
         ply = True
 
-    file = open(filepath, "r")
-    text = file.readlines()
-    file.close()
-    facetype = check_type(text)
+    if faces:
+        file = open(filepath, "r")
+        text = file.readlines()
+        file.close()
+        facetype = check_type(text)
 
 
     if filepath.endswith('.off'):
