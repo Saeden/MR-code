@@ -1,5 +1,9 @@
 import numpy as np
 import open3d as o3d
+from Mesh_Reading import load_mesh_check_type
+from utils import get_complete_classification
+import csv
+import os
 
 
 def show_basic_statistics(mesh, filename, labels_dictionary):
@@ -30,4 +34,29 @@ def show_basic_statistics(mesh, filename, labels_dictionary):
     print(f"orientable:             {orientable}")
 
 
+def save_statistics(db_path):
+    fieldnames = ["filename", "class", "vert_num", "face_num", "face_type", "AABBox"]
+    output = []
+    labels_dictionary = get_complete_classification()
+    for (root, dirs, files) in os.walk(db_path):
+        for filename in files:
+            if filename.endswith(".off") or filename.endswith(".ply"):
+                filepath = root+'\\'+filename
+                mesh, face_type = load_mesh_check_type(filepath)
+                label_class = labels_dictionary.get(int(filename[1:-4]))
+                vert_num = len(np.asarray(mesh.vertices))
+                face_num = len(np.asarray(mesh.triangles))
+                box_points = o3d.geometry.AxisAlignedBoundingBox.get_axis_aligned_bounding_box(mesh).get_box_points()
+                box_array = np.asarray(box_points)
+                aabbox = '('+str(box_array[0][0])+', '+str(box_array[0][1])+', '+str(box_array[0][2])+'), ('+str(box_array[1][0])+', '+str(box_array[1][1])+', '+str(box_array[1][2])+'), ('+str(box_array[2][0])+', '+str(box_array[2][1])+', '+str(box_array[2][2])+')'
+
+                output.append({'filename': filename, 'class': label_class, 'vert_num': vert_num, 'face_num': face_num,
+                               'face_type': face_type, 'AABBox': aabbox})
+            else:
+                continue
+
+    with open('mesh_stats.csv', 'w', encoding='UTF8', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(output)
 

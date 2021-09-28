@@ -15,7 +15,7 @@ from utils import get_complete_classification
 def main():
     print("Multimedia Retrieval application")
 
-    filepath = "./benchmark/db/0/m99/m99.off"
+    filepath = "./benchmark/db/17/m1708/m1708.off"
     filename = filepath[(filepath.rfind("/") + 1):filepath.rfind(".")]
     filepath_ply = "./ply_files/colored_airplane.ply"
 
@@ -25,9 +25,11 @@ def main():
 
     labels_dictionary = get_complete_classification()
 
-    show_basic_statistics(mesh, filename, labels_dictionary)
+    #show_basic_statistics(mesh, filename, labels_dictionary)
 
-    view_mesh(mesh, draw_coordinates=False, show_wireframe=True, aabbox=True)
+    #save_statistics("./benchmark/db/")
+
+    view_mesh(mesh, draw_coordinates=False, show_wireframe=True, aabbox=False)
 
 
 if __name__ == "__main__":
