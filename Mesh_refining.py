@@ -47,6 +47,9 @@ def refine_single_mesh(mesh, target_faces_number=4000):
 
         new_mesh = mesh
 
+    new_mesh.remove_duplicated_triangles()
+    new_mesh.remove_duplicated_vertices()
+
     return new_mesh
 
 
@@ -96,3 +99,5 @@ def refine_all_meshes(db_path, target_faces_number=4000):
 
             else:
                 continue
+
+
