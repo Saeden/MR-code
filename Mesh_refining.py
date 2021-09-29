@@ -1,6 +1,7 @@
 import os
 from Mesh_Reading import load_mesh_check_type
 import open3d as o3d
+import shutil
 
 
 def calculate_number_iteration(actual_faces_number, target_faces_number):
@@ -54,7 +55,7 @@ def refine_all_meshes(db_path, target_faces_number=4000):
     path = "./benchmark/db_refined"
 
     if os.path.exists(path):
-        os.remove(path)
+        shutil.rmtree(path)
 
     # make the directories that will contain the new db:
     os.mkdir(path)
