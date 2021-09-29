@@ -51,10 +51,12 @@ def refine_single_mesh(mesh, target_faces_number=4000):
 
 def refine_all_meshes(db_path, target_faces_number=4000):
 
+    path = "./benchmark/db_refined"
+
+    if os.path.exists(path):
+        os.remove(path)
+
     # make the directories that will contain the new db:
-    directory = "db_refined"
-    parent_dir = "./benchmark/"
-    path = os.path.join(parent_dir, directory)
     os.mkdir(path)
 
     directories = range(19)
