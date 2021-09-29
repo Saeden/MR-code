@@ -41,7 +41,7 @@ def save_statistics(db_path):
     for (root, dirs, files) in os.walk(db_path):
         for filename in files:
             if filename.endswith(".off") or filename.endswith(".ply"):
-                filepath = root+'\\'+filename
+                filepath = root+'/'+filename
                 mesh, face_type = load_mesh_check_type(filepath, faces=True)
                 label_class = labels_dictionary.get(int(filename[1:-4]))
                 vert_num = len(np.asarray(mesh.vertices))

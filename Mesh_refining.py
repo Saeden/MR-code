@@ -13,7 +13,7 @@ def calculate_number_iteration(actual_faces_number, target_faces_number):
     # produced the lowest error
 
     for i in possible_values:
-        error.append((target_faces_number - (actual_faces_number*i)**2))
+        error.append(((target_faces_number - (actual_faces_number*(4**i)))**2))
 
     index_min = error.index(min(error))
 
