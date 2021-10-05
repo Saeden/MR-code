@@ -93,7 +93,7 @@ def refine_all_meshes(db_path, target_faces_number=4000):
 
                 new_filepath = (new_root + "/" + filename)
 
-                o3d.io.write_triangle_mesh(new_filepath, new_mesh)
+                o3d.io.write_triangle_mesh(new_filepath, new_mesh, write_vertex_normals=False)
 
                 print("Refined mesh saved in: ", new_filepath, "\n")
 

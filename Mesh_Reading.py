@@ -39,6 +39,7 @@ def load_mesh_check_type(filepath, faces=False):
     mesh.compute_vertex_normals()  # compute the light of the mesh
 
     print("Try to render a mesh with normals (exist: " + str(mesh.has_vertex_normals()) + ")")
+    print("Succesfully rendered:" + filepath)
 
     return mesh, facetype
 
