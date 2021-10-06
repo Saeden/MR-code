@@ -71,7 +71,7 @@ def scale_aabbox_to_unit(mesh):
     The mesh must be located at the origin.
     """
     center = get_barycenter(mesh)
-    if center[0] > 0.0015 or center[1] > 0.0015 or center[2] > 0.0015:
+    if center[0] > 0.003 or center[1] > 0.003 or center[2] > 0.003:
         raise ValueError(
             f'Mesh must be centered around the origin, not {center}'
         )
