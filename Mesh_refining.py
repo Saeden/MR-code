@@ -21,16 +21,16 @@ def calculate_number_iteration(actual_faces_number, target_faces_number):
     return index_min + 1
 
 
-def refine_single_mesh(mesh, target_faces_number=4000):
+def refine_single_mesh(mesh, target_faces_number=5000):
 
     actual_faces_number = len(mesh.triangles)
-    splitpoint = int(target_faces_number * 0.4)  # eg: 4000 - x = 4x - 4000
+    splitpoint = int(target_faces_number * 0.4)  # eg: 5000 - x = 4x - 5000
     # splitpoint identifies the value for which is the same refine or not refine the mesh, given the target.
-    # In fact, not all meshes with < 4000 faces should be refined, since for every value above 1600,
+    # In fact, not all meshes with < 5000 faces should be refined, since for every value above 2000,
     # if the refining will be done even only once, the number of faces obtained would be
-    # far from 4000 compared to the case that we haven't refined the original mesh.
-    # 1600 is the split point: 4000 - 1600 = 2400 and 1600 * 4 - 4000 = 2400.
-    # The distance from 4000 of the refined vs not refined is the same.
+    # far from 5000 compared to the case that we haven't refined the original mesh.
+    # 2000 is the split point: 5000 - 2000 = 3000 and 2000 * 4 - 5000 = 3000.
+    # The distance from 5000 of the refined vs not refined is the same.
 
     if actual_faces_number < splitpoint:
 
@@ -53,7 +53,7 @@ def refine_single_mesh(mesh, target_faces_number=4000):
     return new_mesh
 
 
-def refine_all_meshes(db_path, target_faces_number=4000):
+def refine_all_meshes(db_path, target_faces_number=5000):
 
     path = "./benchmark/db_refined"
 
