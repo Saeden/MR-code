@@ -28,8 +28,8 @@ def main():
     save_stats_base = False
     refine_meshes = False
     save_stats_refined = False
-    normalise_meshes = True
-    save_stats_normalised = True
+    normalise_meshes = False
+    save_stats_normalised = False
 
 
     #--------------------------------------------------------------------
