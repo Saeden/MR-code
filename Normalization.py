@@ -77,6 +77,11 @@ def normalise_mesh_step2(mesh):
     transl_mesh = translate_to_origin(mesh)
     aligned_mesh = align_eigenvectors(transl_mesh)
     flipped_mesh = flip_test(aligned_mesh)
+
+    """faces = np.asarray(flipped_mesh.triangles)
+    triangles = np.ascontiguousarray(np.fliplr(faces))
+    flipped_mesh.triangles = o3d.utility.Vector3iVector(triangles)"""
+
     scaled_mesh = scale_aabbox_to_unit(flipped_mesh)
 
     return scaled_mesh
@@ -145,7 +150,11 @@ def normalise_step2(db_path, mode="all"):
                 # run the save_statistics function on this new database
                 # to retrieve all the information
 
-                new_root = path + '/' + root[23:]  # check if this still works
+                file_code = filename[:-4]
+                shape_number = int(file_code[1:])
+                shape_folder = str(int(shape_number / 100))
+
+                new_root = path + '/' + shape_folder + '/' + file_code
 
                 os.mkdir(new_root)
 
@@ -192,6 +201,7 @@ def align_eigenvectors(mesh):
     axis_fr_eig = np.cross(maj_eig_vec, med_eig_vec)
 
     for point in mesh_mat:
+
         x = np.dot(point-center, maj_eig_vec)
         y = np.dot(point-center, med_eig_vec)
         z = np.dot(point-center, axis_fr_eig)
@@ -240,7 +250,7 @@ def testing():
     coord_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(origin=[0, 0, 0])
 
 
-    mesh = load_mesh("./benchmark/db/0/m12/m12.off")
+    mesh = load_mesh("./benchmark/db/18/m1800/m1800.off")
     #view_mesh(mesh, draw_coordinates=True)
 
     print(f"Mesh barycenter before normalisation:{get_barycenter(mesh)}")
@@ -273,6 +283,7 @@ def testing():
     mesh_flip.triangles = o3d.utility.Vector3iVector(triangles)
 
     mesh_flip.compute_vertex_normals()
+    mesh_norm.compute_vertex_normals()
     #mesh_flip.compute_triangle_normals()
 
     o3d.visualization.draw_geometries([mesh_norm, mesh_flip, coord_frame])

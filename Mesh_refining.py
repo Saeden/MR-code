@@ -87,7 +87,11 @@ def refine_all_meshes(db_path, target_faces_number=5000):
                 # run the save_statistics function on this new database
                 # to retrieve all the information
 
-                new_root = path + '/' + root[15:]
+                file_code = filename[:-4]
+                shape_number = int(file_code[1:])
+                shape_folder = str(int(shape_number / 100))
+
+                new_root = path + '/' + shape_folder + '/' + file_code
 
                 os.mkdir(new_root)
 
