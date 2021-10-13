@@ -19,10 +19,8 @@ def get_barycenter(mesh):
         sample_sum[0] += tri_center[0] * tri_area
         sample_sum[1] += tri_center[1] * tri_area
         sample_sum[2] += tri_center[2] * tri_area
-        #sample_sum += tri_center/tri_area
 
     center = np.array([sample_sum[0]/area, sample_sum[1]/area, sample_sum[2]/area])
-    #center = sample_sum/area
     return center
 
 
@@ -152,66 +150,30 @@ def compute_angle(v1, v2):
     return angle
 
 
-def align_eigenvectors_old(mesh):
-    eigenvectors, eigenvalues = compute_pca(mesh)
-    sort_eig_val = sorted(eigenvalues, reverse=True)
-    maj_eig_vec = eigenvectors[np.where(eigenvalues==sort_eig_val[0])][0]
-
-    x = np.asarray([1,0,0])
-    y = np.asarray([0,1,0])
-
-    rot_mat_x = get_rot_matrix(x, maj_eig_vec)
-
-    center = get_barycenter(mesh)
-    mesh = mesh.rotate(rot_mat_x, center=center)
-    #vertices = np.asarray(mesh.vertices)
-
-    #eigenvectors, eigenvalues = compute_pca(mesh)
-    #sort_eig_val = sorted(eigenvalues, reverse=True)
-    #med_eig_vec = eigenvectors[np.where(eigenvalues == sort_eig_val[1])][0]
-    #med_eig_vec = eigenvectors[1]
-    #rot_mat_y = get_rot_matrix(y, med_eig_vec)
-
-    #center = get_barycenter(mesh)
-    #mesh.rotate(rot_mat_y, center=center)
-
-    return mesh
-
-def align_eigenvectors_broken(mesh):
-    mesh_mat = np.asarray(mesh.vertices)
-    eig_vec, eig_val = compute_pca(mesh)
-    """sort_eig_val = sorted(eig_val)
-    maj_eig_vec = eig_vec[np.where(eig_val == sort_eig_val[2])][0]
-    med_eig_vec = eig_vec[np.where(eig_val == sort_eig_val[1])][0]
-    axis_fr_eig = np.cross(maj_eig_vec, med_eig_vec)
-    axis_vects = np.asarray([maj_eig_vec, med_eig_vec, axis_fr_eig])"""
-    new_mat = np.dot(mesh_mat, eig_vec)
-    new_vec = o3d.utility.Vector3dVector(new_mat)
-    mesh.vertices = new_vec
-    #faces = np.asarray(mesh.triangles)
-    #triangles = np.ascontiguousarray(np.fliplr(faces))
-    #mesh.triangles = o3d.utility.Vector3iVector(triangles)
-    #mesh.compute_vertex_normals()
-    #mesh.compute_triangle_normals()
-    return mesh
-
 def align_eigenvectors(mesh):
     mesh_mat = np.asarray(mesh.vertices)
-    mesh_mat_x = mesh_mat[:, 0]
-    mesh_mat_y = mesh_mat[:, 1]
-    mesh_mat_z = mesh_mat[:, 2]
+    center = get_barycenter(mesh)
 
     eig_vec, eig_val = compute_pca(mesh)
     sort_eig_val = sorted(eig_val)
-    maj_eig_vec = eig_vec[np.where(eig_val == sort_eig_val[2])][0]
-    med_eig_vec = eig_vec[np.where(eig_val == sort_eig_val[1])][0]
+    index_maj = np.where(eig_val == sort_eig_val[2])[0][0]
+    maj_eig_vec = eig_vec[:, index_maj]
+
+    index_med = np.where(eig_val == sort_eig_val[1])[0][0]
+    med_eig_vec = eig_vec[:, index_med]
     axis_fr_eig = np.cross(maj_eig_vec, med_eig_vec)
 
-    new_mat_x = np.dot()
-    #new_mat_y
-    #new_mat_z
-    axis_vects = np.asarray([maj_eig_vec, med_eig_vec, axis_fr_eig])
+    for point in mesh_mat:
+        x = np.dot(point-center, maj_eig_vec)
+        y = np.dot(point-center, med_eig_vec)
+        z = np.dot(point-center, axis_fr_eig)
+        point[0] = x
+        point[1] = y
+        point[2] = z
+
+    mesh.vertices = o3d.utility.Vector3dVector(mesh_mat)
     return mesh
+
 
 def flip_test(mesh):
     f_x = 0
@@ -238,65 +200,19 @@ def flip_test(mesh):
     return mesh
 
 
-def get_rot_matrix(axis, eig_vec):
-    axis_rotation = np.cross(eig_vec, axis)
-    unit_axis_rot = axis_rotation/np.linalg.norm(axis_rotation)
-    angle_diff = compute_angle(eig_vec, axis)
-    rotation_vector = angle_diff * unit_axis_rot
-    rot_matrix = o3d.geometry.get_rotation_matrix_from_axis_angle(rotation_vector)
-    return rot_matrix
 
-
-
-def align_eigen_to_axis(mesh, axs, ev):
-    """
-    Aligns one eigen vector to a predefined axis.
-    It uses a rotation of the axis-angle representation.
-    In order to obtain the axis of rotation we compute the cross product
-    Then, we normalize it so we get a unit vector
-    Then, the product of the angle and this normalized unit vector
-    equals the rotation vector that we can use to align the
-    eigenvalues with the axes.
-    """
-    rot_axis = np.cross(ev, axs)
-    unit_rot_axis = rot_axis / np.linalg.norm(rot_axis)
-    angle = compute_angle(ev, axs)
-    axis_angle = angle * unit_rot_axis
-    rot_matrix = o3d.geometry.get_rotation_matrix_from_axis_angle(axis_angle)
-    center = get_barycenter(mesh)
-    mesh.rotate(rot_matrix, center=center)
-    return mesh
-
-
-def align_to_eigenvectors(mesh):
-    """
-    Aligns the mesh,
-    such that its eigenvectors are the same direction as the axes.
-    """
-    x = np.asarray([1, 0, 0])
-    y = np.asarray([0, 1, 0])
-
-    vertices = np.asarray(mesh.vertices)
-    eigenvectors = np.linalg.eigh(np.cov(vertices, rowvar=False))[1]
-
-    align_eigen_to_axis(mesh, x, eigenvectors[:, 2])
-
-    vertices = np.asarray(mesh.vertices)
-    eigenvectors = np.linalg.eigh(np.cov(vertices, rowvar=False))[1]
-
-    #align_eigen_to_axis(mesh, y, eigenvectors[:, 1])
-    return mesh
 
 
 def testing():
     coord_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(origin=[0, 0, 0])
 
-    mesh, faces = load_mesh_check_type("./benchmark/db/0/m77/m77.off")
+
+    mesh, faces = load_mesh_check_type("./benchmark/db/0/m99/m99.off")
     #view_mesh(mesh, draw_coordinates=True)
     mesh_copy = copy.deepcopy(mesh)
 
     print(f"Mesh barycenter before normalisation:{get_barycenter(mesh)}")
-    mesh_norm = normalise_mesh_step2(mesh)
+    mesh_norm = translate_to_origin(mesh)
     #view_mesh(mesh_norm, draw_coordinates=True)
     R = mesh.get_rotation_matrix_from_xyz((np.pi / 2, 0, np.pi / 4))
     mesh_norm.rotate(R, center=get_barycenter(mesh))
@@ -306,12 +222,24 @@ def testing():
     #mesh_copy = align_to_eigenvectors(mesh_copy)
     #view_mesh(mesh_copy, draw_coordinates=True)
 
-    align_eigenvectors_broken(mesh_norm)
+    #align_eigenvectors_broken(mesh_norm)
     mesh_norm.translate(translation=[1.5, 0, 0])
     mesh_align = align_eigenvectors_broken(mesh_copy)
     #mesh_align = align_to_eigenvectors(mesh_copy)
     print(f"\nMesh barycenter after rotation:{get_barycenter(mesh_align)}")
     mesh_flip = flip_test(mesh_align)
+
+    mesh_flip.vertex_normals = o3d.utility.Vector3dVector([])
+    mesh_flip.triangle_normals = o3d.utility.Vector3dVector([])
+    """new_mesh = tm.Trimesh(vertices=np.asarray(mesh_flip.vertices), faces=np.asarray(mesh.triangles))
+    tm.repair.fix_normals(new_mesh)
+    tm.repair.fix_inversion(new_mesh)
+    mesh_flip.vertices = o3d.utility.Vector3dVector(new_mesh.vertices)
+    mesh_flip.triangles = o3d.utility.Vector3iVector(new_mesh.faces)"""
+
+
+    mesh_flip.compute_vertex_normals()
+    mesh_flip.compute_triangle_normals()
 
     o3d.visualization.draw_geometries([mesh_norm, mesh_flip, coord_frame])
 
