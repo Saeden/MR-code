@@ -240,9 +240,8 @@ def testing():
     coord_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(origin=[0, 0, 0])
 
 
-    mesh = load_mesh("./benchmark/db/0/m99/m99.off")
+    mesh = load_mesh("./benchmark/db/0/m12/m12.off")
     #view_mesh(mesh, draw_coordinates=True)
-    mesh_copy = copy.deepcopy(mesh)
 
     print(f"Mesh barycenter before normalisation:{get_barycenter(mesh)}")
     mesh_norm = translate_to_origin(mesh)
@@ -262,17 +261,19 @@ def testing():
     print(f"\nMesh barycenter after rotation:{get_barycenter(mesh_align)}")
     mesh_flip = flip_test(mesh_align)
 
-    mesh_flip.vertex_normals = o3d.utility.Vector3dVector([])
-    mesh_flip.triangle_normals = o3d.utility.Vector3dVector([])
+    #mesh_flip.vertex_normals = o3d.utility.Vector3dVector([])
+    #mesh_flip.triangle_normals = o3d.utility.Vector3dVector([])
     """new_mesh = tm.Trimesh(vertices=np.asarray(mesh_flip.vertices), faces=np.asarray(mesh.triangles))
     tm.repair.fix_normals(new_mesh)
     tm.repair.fix_inversion(new_mesh)
     mesh_flip.vertices = o3d.utility.Vector3dVector(new_mesh.vertices)
     mesh_flip.triangles = o3d.utility.Vector3iVector(new_mesh.faces)"""
-
+    faces = np.asarray(mesh_flip.triangles)
+    triangles = np.ascontiguousarray(np.fliplr(faces))
+    mesh_flip.triangles = o3d.utility.Vector3iVector(triangles)
 
     mesh_flip.compute_vertex_normals()
-    mesh_flip.compute_triangle_normals()
+    #mesh_flip.compute_triangle_normals()
 
     o3d.visualization.draw_geometries([mesh_norm, mesh_flip, coord_frame])
 
