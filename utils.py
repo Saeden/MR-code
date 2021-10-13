@@ -1,3 +1,5 @@
+import os
+
 def read_classification_data(filepath, classification_dict=None):
     """
     :param filepath: path where the classification data are contained.
@@ -49,4 +51,56 @@ def get_complete_classification():
 
     return classification_dict_complete
 
+
+def which_database():
+
+    databases = []
+
+    for (root, dirs, file) in os.walk("./benchmark"):
+        for name in dirs:
+            if name.startswith("db"):
+                databases.append(name)
+
+    print("Which database you want to use?")
+
+    for i in range(len(databases)):
+        print(str(i+1) + ")", databases[i])
+
+    choice = int(input("Choice: "))
+
+    return databases[choice-1]
+
+
+def get_path():
+
+    shape = input("\nInsert the shape number (e.g. m99, or m1234, ...): ")
+
+    database = which_database()
+
+    shape_number = int(shape[1:])
+
+    shape_folder = str(int(shape_number/100))
+
+    path = "./benchmark/" + database + "/" + shape_folder + "/" + shape + "/" + shape + ".off"
+
+    print(path)
+
+    return path
+
+
+def get_read_params():
+
+    draw_coordinates = int(input("\nDo you want to show the axis coordinates? (1 for yes / 0 for no): "))
+    if draw_coordinates == 1:
+        draw_coordinates = True
+    else:
+        draw_coordinates = False
+
+    aabbox = int(input("Do you want to show the axis-aligned bounding box? (1 for yes / 0 for no): "))
+    if aabbox == 1:
+        aabbox = True
+    else:
+        aabbox = False
+
+    return draw_coordinates, aabbox
 

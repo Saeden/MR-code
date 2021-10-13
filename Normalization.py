@@ -1,5 +1,5 @@
 
-from Mesh_Reading import load_mesh_check_type, view_mesh
+from Mesh_Reading import load_mesh, view_mesh
 import open3d as o3d
 import numpy as np
 import os
@@ -44,21 +44,11 @@ def translate_to_origin(mesh):
     if [x_t, y_t, z_t] is the centroid, because [x_i, y_i, z_i] = [x_t, y_t, z_t].
     """
 
-    # Sadly, get_center() returns the mean of the vertices coordinates.
-    # we still have to make a function that returns the REAL barycenter,
-    # taking into account the area of the triangles.
-    # This is why I didn't use: mesh.translate(translation=[0, 0, 0], relative=False)
-    # which with relative=False would have directly translated the mesh to [0, 0, 0]
-    # but we loose the control of which center (get_center() or real barycenter)
-    # the algorithm would have used to perform the translation.
-    # When we will have the algorithm for the barycenter, it will be enough to write:
-    # mesh.translate(translation=-barycenter)
-    #center = mesh.get_center()
-    #print("center is: ", center)
+    print("\nTranslating the mesh...")
+
     barycenter = get_barycenter(mesh)
-    #print("\nthe bary center before translation is: ", barycenter)
     mesh.translate(translation=-barycenter)
-    #new_mesh = mesh.translate(translation=barycenter, relative=False)
+    print("Mesh translated to origin.")
     return mesh
 
 
@@ -68,6 +58,9 @@ def scale_aabbox_to_unit(mesh):
     such that it fits tightly in a unit-sized cube.
     The mesh must be located at the origin.
     """
+
+    print("\nScaling the mesh...")
+
     center = get_barycenter(mesh)
     if center[0] > 0.003 or center[1] > 0.003 or center[2] > 0.003:
         raise ValueError(
@@ -75,17 +68,41 @@ def scale_aabbox_to_unit(mesh):
         )
     factor = 1 / max(mesh.get_max_bound() - mesh.get_min_bound())
     mesh.scale(factor, center)
+    print("Mesh scaled.")
     return mesh
 
+
 def normalise_mesh_step2(mesh):
+
     transl_mesh = translate_to_origin(mesh)
-    scaled_mesh = scale_aabbox_to_unit(transl_mesh)
+    aligned_mesh = align_eigenvectors(transl_mesh)
+    flipped_mesh = flip_test(aligned_mesh)
+    scaled_mesh = scale_aabbox_to_unit(flipped_mesh)
+
     return scaled_mesh
 
 
-def normalise_step2(db_path):
+def normalise_step2(db_path, mode="all"):
+    """
+    This function performs a series of normalisation tasks on a database.
+    :param db_path: The path of the input database that has to be normalised.
+    :param mode: Which type of normalisation should be made. Values: "all", "translation", "alignment", "flipping", "scaling".
+    """
 
-    path = "./benchmark/db_ref_normalised"
+    if mode == "all":
+        path = "./benchmark/db_ref_normalised"
+
+    elif mode == "translation":
+        path = "./benchmark/db_ref_translated"
+
+    elif mode == "alignment":
+        path = "./benchmark/db_ref_aligned"
+
+    elif mode == "flipping":
+        path = "./benchmark/db_ref_flipped"
+
+    elif mode == "scaling":
+        path = "./benchmark/db_ref_scaled"
 
     if os.path.exists(path):
         shutil.rmtree(path)
@@ -99,7 +116,7 @@ def normalise_step2(db_path):
         new_path = path + "/" + str(i)
         os.mkdir(new_path)
 
-    # start of the remeshing:
+    # start of the normalisation:
     for (root, dirs, files) in os.walk(db_path):
 
         for filename in files:
@@ -107,26 +124,34 @@ def normalise_step2(db_path):
             if filename.endswith(".off") or filename.endswith(".ply"):
                 filepath = root+'/'+filename
 
-                print("Normalising mesh: ", filename)
+                mesh = load_mesh(filepath)
 
-                mesh, face_type = load_mesh_check_type(filepath, faces=False)
+                if mode == "all":
+                    new_mesh = normalise_mesh_step2(mesh)
 
-                new_mesh = normalise_mesh_step2(mesh)
+                elif mode == "translation":
+                    new_mesh = translate_to_origin(mesh)
 
+                elif mode == "alignment":
+                    new_mesh = align_eigenvectors(mesh)
+
+                elif mode == "flipping":
+                    new_mesh = flip_test(mesh)
+
+                elif mode == "scaling":
+                    new_mesh = scale_aabbox_to_unit(mesh)
 
                 # no need to save the new faces and vertices number since we can
                 # run the save_statistics function on this new database
                 # to retrieve all the information
 
-                new_root = path + '/' + root[23:]
+                new_root = path + '/' + root[23:]  # check if this still works
 
                 os.mkdir(new_root)
 
                 new_filepath = (new_root + "/" + filename)
 
                 o3d.io.write_triangle_mesh(new_filepath, new_mesh, write_vertex_normals=False)
-
-                print("Normalised mesh saved in: ", new_filepath, "\n")
 
             else:
                 continue
@@ -151,6 +176,9 @@ def compute_angle(v1, v2):
 
 
 def align_eigenvectors(mesh):
+
+    print("\nAligning the mesh...")
+
     mesh_mat = np.asarray(mesh.vertices)
     center = get_barycenter(mesh)
 
@@ -172,10 +200,14 @@ def align_eigenvectors(mesh):
         point[2] = z
 
     mesh.vertices = o3d.utility.Vector3dVector(mesh_mat)
+    print("Mesh aligned.")
     return mesh
 
 
 def flip_test(mesh):
+
+    print("\nFlipping the mesh....")
+
     f_x = 0
     f_y = 0
     f_z = 0
@@ -197,6 +229,7 @@ def flip_test(mesh):
         vert[2] *= np.sign(f_z)
 
     mesh.vertices = o3d.utility.Vector3dVector(verts)
+    print("Mesh flipped.")
     return mesh
 
 
@@ -207,7 +240,7 @@ def testing():
     coord_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(origin=[0, 0, 0])
 
 
-    mesh, faces = load_mesh_check_type("./benchmark/db/0/m99/m99.off")
+    mesh = load_mesh("./benchmark/db/0/m99/m99.off")
     #view_mesh(mesh, draw_coordinates=True)
     mesh_copy = copy.deepcopy(mesh)
 
@@ -224,7 +257,7 @@ def testing():
 
     #align_eigenvectors_broken(mesh_norm)
     mesh_norm.translate(translation=[1.5, 0, 0])
-    mesh_align = align_eigenvectors_broken(mesh_copy)
+    mesh_align = align_eigenvectors(mesh_copy)
     #mesh_align = align_to_eigenvectors(mesh_copy)
     print(f"\nMesh barycenter after rotation:{get_barycenter(mesh_align)}")
     mesh_flip = flip_test(mesh_align)

@@ -1,6 +1,6 @@
 import numpy as np
 import open3d as o3d
-from Mesh_Reading import load_mesh_check_type
+from Mesh_Reading import load_mesh, check_type
 from utils import get_complete_classification
 from Normalization import get_barycenter
 import csv
@@ -13,6 +13,14 @@ def show_basic_statistics(mesh, filename, labels_dictionary):
     print("Number of faces:", len(np.asarray(mesh.triangles)))
     box_points = o3d.geometry.AxisAlignedBoundingBox.get_axis_aligned_bounding_box(mesh).get_box_points()
     print(f"Axis-aligned bounding box vertices coordinates: \n{np.asarray(box_points)}")
+
+    max_aabbox_elongation = o3d.geometry.AxisAlignedBoundingBox.get_axis_aligned_bounding_box(mesh).get_max_extent()
+    barycenter = get_barycenter(mesh)
+    distance_from_origin = sqrt(barycenter[0] ** 2 + barycenter[1] ** 2 + barycenter[2] ** 2)
+
+    print("Max elongation of axis-aligned bounding box:", max_aabbox_elongation)
+    print("Barycenter coordinates:", barycenter)
+    print("Distance from origin:", distance_from_origin)
 
     label_class = labels_dictionary.get(int(filename[1:]))
     print(f"Shape belongs to class: {label_class}")
@@ -44,7 +52,8 @@ def save_statistics(db_path):
         for filename in files:
             if filename.endswith(".off") or filename.endswith(".ply"):
                 filepath = root+'/'+filename
-                mesh, face_type = load_mesh_check_type(filepath, faces=True)
+                mesh = load_mesh(filepath)
+                face_type = check_type(mesh)
                 label_class = labels_dictionary.get(int(filename[1:-4]))
                 vert_num = len(np.asarray(mesh.vertices))
                 face_num = len(np.asarray(mesh.triangles))
@@ -63,10 +72,6 @@ def save_statistics(db_path):
                          +str(box_array[5][0])+', '+str(box_array[5][1])+', '+str(box_array[5][2])+'), ('\
                          +str(box_array[6][0])+', '+str(box_array[6][1])+', '+str(box_array[6][2])+'), ('\
                          +str(box_array[7][0])+', '+str(box_array[7][1])+', '+str(box_array[7][2])+')'
-
-
-
-
 
                 output.append({'filename': filename, 'class': label_class, 'vert_num': vert_num, 'face_num': face_num,
                                'face_type': face_type, 'AABBox': aabbox, 'barycenter': barycenter, 'distance_from_origin': distance_from_origin,

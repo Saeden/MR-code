@@ -1,5 +1,5 @@
 import os
-from Mesh_Reading import load_mesh_check_type
+from Mesh_Reading import load_mesh
 import open3d as o3d
 import shutil
 
@@ -79,7 +79,7 @@ def refine_all_meshes(db_path, target_faces_number=5000):
 
                 print("Refining mesh: ", filename)
 
-                mesh, face_type = load_mesh_check_type(filepath, faces=False)
+                mesh = load_mesh(filepath)
 
                 new_mesh = refine_single_mesh(mesh, target_faces_number)
 
@@ -99,5 +99,3 @@ def refine_all_meshes(db_path, target_faces_number=5000):
 
             else:
                 continue
-
-
