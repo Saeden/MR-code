@@ -11,7 +11,7 @@ def load_mesh(filepath):
     with trimesh as a temp .off file, and then it loads the .off file.
     Then, it cancels the temp .off file.
     :param filepath: the filepath of the .ply or .off file containing the mesh.
-    :return: a TriangleMesh open3d object & the face type present in the mesh (triangle, quad or mix).
+    :return: a TriangleMesh open3d object.
     """
 
     ply = False
@@ -36,7 +36,7 @@ def load_mesh(filepath):
 
 def check_type(mesh):
     """
-    Check if the mesh is composed by triangles and/or quads
+    Check if the mesh is composed by triangles and/or quads.
     :param mesh: the mesh object to analyze.
     :return: whether the mesh is composed by triangles, quads or a mix of them.
     """
@@ -63,7 +63,7 @@ def check_type(mesh):
 def view_mesh(mesh, draw_coordinates=False, show_wireframe=True, aabbox=False):
     """
     Function used to view a mesh.
-    :param shape: a list of open3d meshes object that has to be displayed.
+    :param mesh: a list of open3d meshes object that has to be displayed.
     :param draw_coordinates: True if the 3-axis (x, y, z) has to be displayed, False otherwise.
     :param show_wireframe: True if a solid wireframe atop of the shape has to be draw.
     :param aabbox: True if the axis-aligned bounding box of the mesh has to be displayed, False otherwise.

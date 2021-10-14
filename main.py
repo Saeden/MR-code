@@ -13,9 +13,9 @@ shutil
 copy
 
 """
-from Mesh_Reading import *
+from Mesh_Reading import load_mesh, view_mesh
 from Statistics import *
-from utils import get_complete_classification, get_path, get_read_params, which_database
+from utils import get_path, get_read_params, which_database
 from Mesh_refining import refine_single_mesh, refine_all_meshes
 from Normalization import *
 
@@ -63,7 +63,7 @@ def choice_2():
     choice = input("\nChoice: ")
 
     while choice not in possible_choices:
-        print("Error! Invalid choice")
+        print("\nError! Invalid choice")
         choice = input("\nChoice: ")
 
     choice = int(choice)
@@ -98,7 +98,7 @@ def choice_3():
     choice = input("Choice: ")
 
     while choice not in possible_choices:
-        print("Error! Invalid choice")
+        print("\nError! Invalid choice")
         choice = input("\nChoice: ")
 
     choice = int(choice)
@@ -118,7 +118,7 @@ def choice_3():
         choice3_1 = input("Choice: ")
 
         while choice3_1 not in possible_choices3_1:
-            print("Error! Invalid choice")
+            print("\nError! Invalid choice")
             choice3_1 = input("\nChoice: ")
 
         choice3_1 = int(choice3_1)
@@ -162,7 +162,7 @@ def choice_3():
         choice3_2 = input("Choice: ")
 
         while choice3_2 not in possible_choices3_2:
-            print("Error! Invalid choice")
+            print("\nError! Invalid choice")
             choice3_2 = input("\nChoice: ")
 
         choice3_2 = int(choice3_2)
@@ -196,26 +196,25 @@ def choice_4():
     choice = input("\nChoice: ")
 
     while choice not in possible_choices:
-        print("Error! Invalid choice")
+        print("\nError! Invalid choice")
         choice = input("\nChoice: ")
 
     choice = int(choice)
 
     if choice == 1:
 
-        labels_dictionary = get_complete_classification()
         path = get_path()
-        filename = path[(path.rfind("/") + 1):path.rfind(".")]
+        filename = path[(path.rfind("/") + 1):]
 
         mesh = load_mesh(path)
 
-        show_basic_statistics(mesh, filename, labels_dictionary)
+        show_shape_statistics(mesh, filename)
 
     elif choice == 2:
         database = which_database()
         path = "./benchmark/" + database
 
-        save_statistics(path)
+        save_statistics(path, database)
 
 
 

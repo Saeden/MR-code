@@ -1,7 +1,6 @@
 import os
 from Mesh_Reading import load_mesh
-import open3d as o3d
-import shutil
+from utils import create_new_db, save_shape
 
 
 def calculate_number_iteration(actual_faces_number, target_faces_number):
@@ -49,6 +48,7 @@ def refine_single_mesh(mesh, target_faces_number=5000):
 
     new_mesh.remove_duplicated_triangles()
     new_mesh.remove_duplicated_vertices()
+    new_mesh.remove_degenerate_triangles()
 
     return new_mesh
 
@@ -56,18 +56,7 @@ def refine_single_mesh(mesh, target_faces_number=5000):
 def refine_all_meshes(db_path, target_faces_number=5000):
 
     path = "./benchmark/db_refined"
-
-    if os.path.exists(path):
-        shutil.rmtree(path)
-
-    # make the directories that will contain the new db:
-    os.mkdir(path)
-
-    directories = range(19)
-
-    for i in directories:
-        new_path = path + "/" + str(i)
-        os.mkdir(new_path)
+    create_new_db(path)
 
     # start of the remeshing:
     for (root, dirs, files) in os.walk(db_path):
@@ -87,19 +76,7 @@ def refine_all_meshes(db_path, target_faces_number=5000):
                 # run the save_statistics function on this new database
                 # to retrieve all the information
 
-                file_code = filename[:-4]
-                shape_number = int(file_code[1:])
-                shape_folder = str(int(shape_number / 100))
-
-                new_root = path + '/' + shape_folder + '/' + file_code
-
-                os.mkdir(new_root)
-
-                new_filepath = (new_root + "/" + filename)
-
-                o3d.io.write_triangle_mesh(new_filepath, new_mesh, write_vertex_normals=False)
-
-                print("Refined mesh saved in: ", new_filepath, "\n")
+                save_shape(filename, path, new_mesh)
 
             else:
                 continue
