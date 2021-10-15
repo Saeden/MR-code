@@ -1,4 +1,4 @@
-import trimesh
+import trimesh as tm
 import open3d as o3d
 import os
 
@@ -16,8 +16,8 @@ def load_mesh(filepath):
 
     ply = False
     if filepath.endswith('.ply'):
-        mesh = trimesh.load_mesh(filepath)
-        trimesh.exchange.export.export_mesh(mesh, './temp.off', 'off')
+        mesh = tm.load_mesh(filepath)
+        tm.exchange.export.export_mesh(mesh, './temp.off', 'off')
         filepath = './temp.off'
         ply = True
 
@@ -28,6 +28,25 @@ def load_mesh(filepath):
 
     if ply:
         os.remove('./temp.off')
+
+    print("Succesfully rendered:" + filepath)
+
+    return mesh
+
+
+def load_mesh_trimesh(filepath):
+    """
+    Reads the mesh file located at the specified filepath,
+    and returns the mesh as a trimesh object.
+    :param filepath: the filepath of the .ply or .off file containing the mesh.
+    :return: a TriangleMesh trimesh object.
+    """
+
+    if filepath.endswith('.ply') or filepath.endswith('.off'):
+        mesh = tm.load_mesh(filepath)
+
+    else:
+        raise ValueError('Input file must be either .off or .ply format')
 
     print("Succesfully rendered:" + filepath)
 

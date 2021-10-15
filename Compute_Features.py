@@ -5,6 +5,7 @@ from Mesh_Reading import *
 from utils import *
 from Statistics import show_shape_statistics
 import numpy as np
+import trimesh as tm
 
 
 def compute_global_features(mesh):
@@ -26,7 +27,50 @@ def compute_global_features(mesh):
     print(area, volume, compactness, sphericity, diameter, aabbox_volume, eccentricity)
 
 
+def compute_global_features_tm(mesh):
 
+    area = mesh.area
+    volume = mesh.volume
+
+    return area, volume
+
+
+
+def test_tm():
+
+    path = "./benchmark/db_ref_normalised/18/m1800/m1800.off"
+    filename = path[(path.rfind("/") + 1):]
+    mesh = load_mesh_trimesh(path)
+    print(type(mesh))
+
+    print("Watertight1: ", mesh.is_watertight)
+
+    mesh.fix_normals()
+    tm.repair.fix_inversion(mesh)
+    tm.repair.fix_winding(mesh)
+    tm.repair.broken_faces(mesh)
+    mesh.remove_duplicate_faces()
+    mesh.fill_holes()
+
+    print("Watertight2: ", mesh.is_watertight)
+
+    print("Volume?", mesh.is_volume)
+
+    o3d_mesh = mesh.as_open3d
+
+    view_mesh(o3d_mesh, draw_coordinates=True, show_wireframe=True, aabbox=True)
+
+    area, volume = compute_global_features_tm(mesh)
+
+    print("Area, volume (trimesh):", area, volume)
+
+    o3d_mesh = mesh.as_open3d
+
+    view_mesh(o3d_mesh, draw_coordinates=True, show_wireframe=True, aabbox=True)
+
+    show_shape_statistics(o3d_mesh, filename)
+
+    compute_global_features(o3d_mesh)
 
 
 def test():
@@ -44,25 +88,28 @@ def test():
     We have to find a way to compute the volume of non-watertight shapes.
     """
 
-    # remove self intersecting triangles
-    intersecting = np.asarray(mesh.get_self_intersecting_triangles())
-    unique_triangles = np.unique(intersecting)
-    print("Number of removed self-intersecting triangles: ", len(unique_triangles))
-    mesh.remove_triangles_by_index(unique_triangles)
-    mesh.remove_unreferenced_vertices()
 
-    tri_before = len(np.asarray(mesh.triangles))
     # remove non manifold edges
+    tri_before = len(np.asarray(mesh.triangles))
     mesh.remove_non_manifold_edges()
     tri_after = len(np.asarray(mesh.triangles))
     print("Number of non-manifold triangles removed: ", tri_before-tri_after)
-    mesh.remove_duplicated_vertices()
-    mesh.remove_degenerate_triangles()
 
     # remove non manifold vertices
     verts = np.asarray(mesh.get_non_manifold_vertices())
     print("Number of non-manifold vertices removed: ", len(verts))
     mesh.remove_vertices_by_index(verts)
+
+    # remove self intersecting triangles
+    intersecting = np.asarray(mesh.get_self_intersecting_triangles())
+    unique_triangles = np.unique(intersecting)
+    print("Number of removed self-intersecting triangles: ", len(unique_triangles))
+    mesh.remove_triangles_by_index(unique_triangles)
+
+    # mesh cleaning
+    mesh.remove_duplicated_vertices()
+    mesh.remove_degenerate_triangles()
+    mesh.remove_unreferenced_vertices()
 
     view_mesh(mesh, draw_coordinates=True, show_wireframe=True, aabbox=True)
     show_shape_statistics(mesh, filename)
@@ -70,7 +117,7 @@ def test():
     compute_global_features(mesh)
 
 
-#test()
+test_tm()
 
 
 
