@@ -10,8 +10,12 @@ from math import sqrt
 
 def statistics_to_save(mesh, filename):
 
+    stats = {}
+
     labels_dictionary = get_complete_classification()
 
+    file_name = filename[:filename.rfind('.')]
+    shape_number = int(file_name[1:])
     face_num = len(np.asarray(mesh.triangles))
     vert_num = len(np.asarray(mesh.vertices))
     face_type = check_type(mesh)
@@ -33,23 +37,36 @@ def statistics_to_save(mesh, filename):
     distance_from_origin = sqrt(barycenter[0] ** 2 + barycenter[1] ** 2 + barycenter[2] ** 2)
     is_watertight = mesh.is_watertight()
 
-    return face_num, vert_num, face_type, label_class, box_array, aabbox_str, max_aabbox_elongation, barycenter, distance_from_origin, is_watertight
+    stats['file_name'] = file_name
+    stats['shape_number'] = shape_number
+    stats['face_num'] = face_num
+    stats['vert_num'] = vert_num
+    stats['face_type'] = face_type
+    stats['label_class'] = label_class
+    stats['box_points_array'] = box_array
+    stats['box_points_string'] = aabbox_str
+    stats['max_abbox_elongation'] = max_aabbox_elongation
+    stats['barycenter'] = barycenter
+    stats['distance_from_origin'] = distance_from_origin
+    stats['is_watertight'] = is_watertight
+
+    return stats
 
 
 def show_shape_statistics(mesh, filename):
 
-    face_num, vert_num, face_type, label_class, box_array, aabbox_str, \
-    max_aabbox_elongation, barycenter, distance_from_origin, is_watertight = statistics_to_save(mesh, filename)
+    stats = statistics_to_save(mesh, filename)
 
-
-    print("\nNumber of faces:", face_num)
-    print("Number of vertices:", vert_num)
-    print("The shape is composed by triangles or quads?:", face_type)
-    print("Shape belongs to class:", label_class)
-    print("Axis-aligned bounding box vertices coordinates:\n", box_array)
-    print("Max elongation of axis-aligned bounding box:", max_aabbox_elongation)
-    print("Barycenter coordinates:", barycenter)
-    print("Distance from origin:", distance_from_origin)
+    print("\nFile name:", stats['file_name'])
+    print("Shape number:", stats['shape_number'])
+    print("Number of faces:", stats['face_num'])
+    print("Number of vertices:", stats['vert_num'])
+    print("The shape is composed by triangles or quads?:", stats['face_type'])
+    print("Shape belongs to class:", stats['label_class'])
+    print("Axis-aligned bounding box vertices coordinates:\n", stats['box_points_array'])
+    print("Max elongation of axis-aligned bounding box:", stats['max_abbox_elongation'])
+    print("Barycenter coordinates:", stats['barycenter'])
+    print("Distance from origin:", stats['distance_from_origin'])
 
 
     print("\n----------------- Additional info -----------------\n")
@@ -74,13 +91,12 @@ def show_shape_statistics(mesh, filename):
     print(f"edge_manifold_boundary: {edge_manifold_boundary}")
     print(f"vertex_manifold:        {vertex_manifold}")
     print(f"self_intersecting:      {self_intersecting}")
-    print(f"watertight:             {is_watertight}")
+    print(f"watertight:             {stats['is_watertight']}")
     print(f"orientable:             {orientable}")
 
 
 def save_statistics(db_path, db_name):
 
-    fieldnames = ["filename", "class", "vert_num", "face_num", "face_type", "AABBox", 'barycenter', 'distance_from_origin', 'max_elongation', "is_watertight"]
     output = []
 
     for (root, dirs, files) in os.walk(db_path):
@@ -91,17 +107,16 @@ def save_statistics(db_path, db_name):
                 filepath = root+'/'+filename
                 mesh = load_mesh(filepath)
 
-                face_num, vert_num, face_type, label_class, box_array, aabbox_str, \
-                max_aabbox_elongation, barycenter, distance_from_origin, is_watertight = statistics_to_save(mesh, filename)
+                stats = statistics_to_save(mesh, filename)
 
-                output.append({'filename': filename, 'class': label_class, 'vert_num': vert_num, 'face_num': face_num,
-                               'face_type': face_type, 'AABBox': aabbox_str, 'barycenter': barycenter, 'distance_from_origin': distance_from_origin,
-                               'max_elongation': max_aabbox_elongation, 'is_watertight': is_watertight})
+                output.append(stats)
 
                 print("Statistics for", filename, "has been saved.")
 
             else:
                 continue
+
+    fieldnames = [i for i in stats]
 
     filename = db_name + '.csv'
 
@@ -109,4 +124,3 @@ def save_statistics(db_path, db_name):
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(output)
-

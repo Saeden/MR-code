@@ -100,11 +100,6 @@ def normalise_mesh_step2(mesh):
     transl_mesh = translate_to_origin(mesh)
     aligned_mesh = align_eigenvectors(transl_mesh)
     flipped_mesh = flip_test(aligned_mesh)
-
-    """faces = np.asarray(flipped_mesh.triangles)
-    triangles = np.ascontiguousarray(np.fliplr(faces))
-    flipped_mesh.triangles = o3d.utility.Vector3iVector(triangles)"""
-
     scaled_mesh = scale_aabbox_to_unit(flipped_mesh)
 
     return scaled_mesh
@@ -231,15 +226,11 @@ def align_eigenvectors(mesh):
 
     return mesh
 
+"""
 
 def flip_test(mesh):
-    """
-    This function flip the mesh according to the convention discussed in class.
-    :param mesh: mesh that has to be flipped.
-    :return: the flipped mesh.
-    """
 
-    print("\nFlipping the mesh....")
+    print("Flipping the mesh....")
 
     f_x = 0
     f_y = 0
@@ -274,15 +265,13 @@ def flip_test(mesh):
         R = np.asarray([[np.cos(-1/4 * np.pi), -np.sin(-1/4 * np.pi), 0], [np.sin(-1/4*np.pi), np.cos(-1/4*np.pi), 0], [0,0,1]])
         mesh.rotate(R, center=center)
 
-
-
-
     print("Mesh flipped.")
 
     return mesh
 
+"""
 
-def flip_test_broken(mesh):
+def flip_test(mesh):
     """
     This function flip the mesh according to the convention discussed in class.
     :param mesh: mesh that has to be flipped.
@@ -314,39 +303,47 @@ def flip_test_broken(mesh):
 
     mesh.vertices = o3d.utility.Vector3dVector(verts)
 
-
+    """
+    At this point, the mesh could have the normals broken.
+    we noticed by performing some experiments that if an odd number of f_x, f_y and f_z is negative,
+    (hence, 1 or 3) then the mesh is inside-out, all the normals are pointing inwards. 
+    On the other hand, if an even number (hence only 2) of f_x, f_y and f_z is negative, then the normals are correct.
+    In the following code, we will perform this check, and invert all the triangles of a shape, if 1 or 3 among
+    f_x, f_y and f_z are negative
+    """
     lst_f = [np.sign(f_x), np.sign(f_y), np.sign(f_z)]
-    neg_f = len([i for i in lst_f if i<0])
+    neg_f = len([i for i in lst_f if i < 0])
 
-    if neg_f%2==1:
+    if neg_f % 2 == 1:
         faces = np.asarray(mesh.triangles)
         triangles = np.ascontiguousarray(np.fliplr(faces))
         mesh.triangles = o3d.utility.Vector3iVector(triangles)
 
-    print("Mesh flipped broken.")
+    print("Mesh flipped.")
 
     return mesh
 
 
+"""
+
 def testing():
+
     coord_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(origin=[0, 0, 0])
 
-    #mesh = load_mesh("./benchmark/db/14/m1450/m1450.off") #random mesh
+    #mesh = load_mesh("./benchmark/db_refined/14/m1450/m1450.off") #random mesh
 
-    #mesh = load_mesh("./benchmark/db/11/m1112/m1112.off") #f_x negative #very not watertight, like not at allllll
-    mesh = load_mesh("./benchmark/db/6/m672/m672.off") #f_x negative --> needs inversion
-    #mesh = load_mesh("./benchmark/db/0/m12/m12.off") #f_y negative --> needs inversion
-    #mesh = load_mesh("./benchmark/db/17/m1777/m1777.off") #f_z negative --> needs inversion #rotate around y axis 180 degrees
+    #mesh = load_mesh("./benchmark/db_refined/11/m1112/m1112.off") #f_x negative #very not watertight, like not at allllll
+    #mesh = load_mesh("./benchmark/db_refined/6/m672/m672.off") #f_x negative --> needs inversion
+    #mesh = load_mesh("./benchmark/db_refined/0/m12/m12.off") #f_y negative --> needs inversion
+    #mesh = load_mesh("./benchmark/db_refined/17/m1777/m1777.off") #f_z negative --> needs inversion #rotate around y axis 180 degrees
 
-    #mesh = load_mesh("./benchmark/db/14/m1450/m1450.off") #f_x and f_y negative --> no inversion
-    #mesh = load_mesh("./benchmark/db/5/m556/m556.off") #f_x and f_z negative #flip only x axis --> no inversion
-    #mesh = load_mesh("./benchmark/db/0/m84/m84.off") #f_y and f_z negative #seems to work --> no inversion
+    #mesh = load_mesh("./benchmark/db_refined/14/m1450/m1450.off") #f_x and f_y negative --> no inversion
+    #mesh = load_mesh("./benchmark/db_refined/5/m556/m556.off") #f_x and f_z negative #flip only x axis --> no inversion
+    #mesh = load_mesh("./benchmark/db_refined/0/m84/m84.off") #f_y and f_z negative #seems to work --> no inversion
 
 
-    #mesh = load_mesh("./benchmark/db/5/m558/m558.off")  # f_x, f_y and f_z negative #rotate around the y axis 180 degrees
-    #mesh = load_mesh("./benchmark/db/18/m1800/m1800.off") #all positive
-
-    #view_mesh(mesh, draw_coordinates=True)
+    #mesh = load_mesh("./benchmark/db_refined/5/m558/m558.off")  # f_x, f_y and f_z negative #rotate around the y axis 180 degrees
+    mesh = load_mesh("./benchmark/db_refined/18/m1800/m1800.off") #all positive
 
     print(f"Mesh barycenter before normalisation:{get_barycenter(mesh)}")
     mesh_norm = copy.deepcopy(mesh)
@@ -363,40 +360,15 @@ def testing():
     mesh_copy = copy.deepcopy(mesh_norm)
 
     mesh_norm = align_eigenvectors(mesh_norm)
-    mesh_norm = flip_test_broken(mesh_norm)
-
-    mesh_norm.translate(translation=[1.5, 0, 0])
-    mesh_align = align_eigenvectors(mesh_copy)
-    #mesh_align = align_to_eigenvectors(mesh_copy)
-    print(f"\nMesh barycenter after rotation:{get_barycenter(mesh_align)}")
-    mesh_flip = flip_test(mesh_align)
-
-
-
-
+    mesh_norm = flip_test(mesh_norm)
 
     mesh.compute_vertex_normals()
-    mesh_flip.compute_vertex_normals()
     mesh_norm.compute_vertex_normals()
 
 
-    o3d.visualization.draw_geometries([mesh, mesh_norm, mesh_flip, coord_frame])
+    o3d.visualization.draw_geometries([mesh, mesh_norm, coord_frame])
 
 
-testing()
+#testing()
 
-
-def axis_search(db_path="./benchmark/db/"):
-    for (root, dirs, files) in os.walk(db_path):
-
-        for filename in files:
-
-            if filename.endswith(".off") or filename.endswith(".ply"):
-                filepath = root + '/' + filename
-                mesh = load_mesh(filepath)
-                print(filename)
-                mesh = translate_to_origin(mesh)
-                mesh = align_eigenvectors(mesh)
-                mesh = flip_test_broken(mesh)
-
-#axis_search()
+"""

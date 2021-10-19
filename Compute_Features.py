@@ -1,19 +1,45 @@
-import open3d as o3d
-from math import pi
 from Normalization import compute_pca
 from Mesh_Reading import *
 from utils import *
 from Statistics import show_shape_statistics
 import numpy as np
 import trimesh as tm
+from time import time
+
+
+def volume_tetrahedron(p1, p2, p3):
+
+    v321 = p3[0] * p2[1] * p1[2]
+    v231 = p2[0] * p3[1] * p1[2]
+    v312 = p3[0] * p1[1] * p2[2]
+    v132 = p1[0] * p3[1] * p2[2]
+    v213 = p2[0] * p1[1] * p3[2]
+    v123 = p1[0] * p2[1] * p3[2]
+
+    return (1/6)*(-v321 + v231 + v312 - v132 - v213 + v123)
+
+
+def get_volume(mesh):
+
+    volume = 0
+
+    for face in np.asarray(mesh.triangles):
+
+        p1 = np.asarray(mesh.vertices)[face[0]]
+        p2 = np.asarray(mesh.vertices)[face[1]]
+        p3 = np.asarray(mesh.vertices)[face[2]]
+
+        volume += volume_tetrahedron(p1, p2, p3)
+
+    return abs(volume)
 
 
 def compute_global_features(mesh):
 
     area = mesh.get_surface_area()
-    volume = mesh.get_volume()
+    volume = get_volume(mesh)
 
-    compactness = (area**2)/(36*pi*(volume**2))
+    compactness = (area**3)/(36*np.pi*(volume**2))
     sphericity = 1/compactness
 
     # diameter as the minimum of the coordinates of the max_bound - min_bound of the shape.
@@ -32,13 +58,13 @@ def compute_global_features_tm(mesh):
     area = mesh.area
     volume = mesh.volume
 
-    return area, volume
+    print(area, volume)
 
 
 
 def test_tm():
 
-    path = "./benchmark/db_ref_normalised/18/m1800/m1800.off"
+    path = "./benchmark/db_ref_normalised/2/m251/m251.off"
     filename = path[(path.rfind("/") + 1):]
     mesh = load_mesh_trimesh(path)
     print(type(mesh))
@@ -47,8 +73,8 @@ def test_tm():
 
     mesh.fix_normals()
     tm.repair.fix_inversion(mesh)
-    tm.repair.fix_winding(mesh)
-    tm.repair.broken_faces(mesh)
+    #tm.repair.fix_winding(mesh)
+    #tm.repair.broken_faces(mesh)
     mesh.remove_duplicate_faces()
     mesh.fill_holes()
 
@@ -56,17 +82,17 @@ def test_tm():
 
     print("Volume?", mesh.is_volume)
 
+    t1 = time()
     o3d_mesh = mesh.as_open3d
+    t2 = time()
+
+    print("Conversion time:", t2-t1)
 
     view_mesh(o3d_mesh, draw_coordinates=True, show_wireframe=True, aabbox=True)
 
     area, volume = compute_global_features_tm(mesh)
 
     print("Area, volume (trimesh):", area, volume)
-
-    o3d_mesh = mesh.as_open3d
-
-    view_mesh(o3d_mesh, draw_coordinates=True, show_wireframe=True, aabbox=True)
 
     show_shape_statistics(o3d_mesh, filename)
 
@@ -117,10 +143,20 @@ def test():
     compute_global_features(mesh)
 
 
+def test_2():
+
+    path = "./benchmark/db_ref_normalised/0/m99/m99.off"
+    filename = path[(path.rfind("/") + 1):]
+
+    mesh = load_mesh(path)
+    tm_mesh = load_mesh_trimesh(path)
+
+    compute_global_features(mesh)
+    compute_global_features_tm(tm_mesh)
+
+
+
 test_tm()
-
-
-
 
 
 
