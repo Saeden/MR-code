@@ -261,9 +261,20 @@ def flip_test(mesh):
         mesh.rotate(R, center=center)
 
     if np.sign(f_y) == -1:
-            center = get_barycenter(mesh)
-            R = np.asarray([[1, 0, 0], [0, np.cos(np.pi), -np.sin(np.pi)], [0, np.sin(np.pi), np.cos(np.pi)]])
-            mesh.rotate(R, center=center)
+        center = get_barycenter(mesh)
+        R = np.asarray([[1, 0, 0], [0, np.cos(np.pi), -np.sin(np.pi)], [0, np.sin(np.pi), np.cos(np.pi)]])
+        mesh.rotate(R, center=center)
+
+    if np.sign(f_z) == -1:
+        center = get_barycenter(mesh)
+        R = np.asarray([[np.cos(np.pi), 0, np.sin(np.pi)], [0, 1, 0], [-np.sin(np.pi), 0, np.cos(np.pi)]])
+        mesh.rotate(R, center=center)
+
+        center = get_barycenter(mesh)
+        R = np.asarray([[np.cos(-1/4 * np.pi), -np.sin(-1/4 * np.pi), 0], [np.sin(-1/4*np.pi), np.cos(-1/4*np.pi), 0], [0,0,1]])
+        mesh.rotate(R, center=center)
+
+
 
 
     print("Mesh flipped.")
@@ -303,6 +314,15 @@ def flip_test_broken(mesh):
 
     mesh.vertices = o3d.utility.Vector3dVector(verts)
 
+
+    lst_f = [np.sign(f_x), np.sign(f_y), np.sign(f_z)]
+    neg_f = len([i for i in lst_f if i<0])
+
+    if neg_f%2==1:
+        faces = np.asarray(mesh.triangles)
+        triangles = np.ascontiguousarray(np.fliplr(faces))
+        mesh.triangles = o3d.utility.Vector3iVector(triangles)
+
     print("Mesh flipped broken.")
 
     return mesh
@@ -311,9 +331,21 @@ def flip_test_broken(mesh):
 def testing():
     coord_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(origin=[0, 0, 0])
 
+    #mesh = load_mesh("./benchmark/db/14/m1450/m1450.off") #random mesh
 
-    #mesh = load_mesh("./benchmark/db/17/m1777/m1777.off")
-    mesh = load_mesh("./benchmark/db/0/m99/m99.off")
+    #mesh = load_mesh("./benchmark/db/11/m1112/m1112.off") #f_x negative #very not watertight, like not at allllll
+    mesh = load_mesh("./benchmark/db/6/m672/m672.off") #f_x negative --> needs inversion
+    #mesh = load_mesh("./benchmark/db/0/m12/m12.off") #f_y negative --> needs inversion
+    #mesh = load_mesh("./benchmark/db/17/m1777/m1777.off") #f_z negative --> needs inversion #rotate around y axis 180 degrees
+
+    #mesh = load_mesh("./benchmark/db/14/m1450/m1450.off") #f_x and f_y negative --> no inversion
+    #mesh = load_mesh("./benchmark/db/5/m556/m556.off") #f_x and f_z negative #flip only x axis --> no inversion
+    #mesh = load_mesh("./benchmark/db/0/m84/m84.off") #f_y and f_z negative #seems to work --> no inversion
+
+
+    #mesh = load_mesh("./benchmark/db/5/m558/m558.off")  # f_x, f_y and f_z negative #rotate around the y axis 180 degrees
+    #mesh = load_mesh("./benchmark/db/18/m1800/m1800.off") #all positive
+
     #view_mesh(mesh, draw_coordinates=True)
 
     print(f"Mesh barycenter before normalisation:{get_barycenter(mesh)}")
@@ -324,8 +356,8 @@ def testing():
 
     mesh_norm = translate_to_origin(mesh_norm)
     #view_mesh(mesh_norm, draw_coordinates=True)
-    R = mesh.get_rotation_matrix_from_xyz((np.pi / 2, 0, np.pi / 4))
-    mesh_norm.rotate(R, center=get_barycenter(mesh))
+    #R = mesh.get_rotation_matrix_from_xyz((np.pi / 2, 0, np.pi / 4))
+    #mesh_norm.rotate(R, center=get_barycenter(mesh))
     print(f"Mesh barycenter before rotation:{get_barycenter(mesh_norm)}")
 
     mesh_copy = copy.deepcopy(mesh_norm)
@@ -339,16 +371,9 @@ def testing():
     print(f"\nMesh barycenter after rotation:{get_barycenter(mesh_align)}")
     mesh_flip = flip_test(mesh_align)
 
-    #mesh_flip.vertex_normals = o3d.utility.Vector3dVector([])
-    #mesh_flip.triangle_normals = o3d.utility.Vector3dVector([])
-    """new_mesh = tm.Trimesh(vertices=np.asarray(mesh_flip.vertices), faces=np.asarray(mesh.triangles))
-    tm.repair.fix_normals(new_mesh)
-    tm.repair.fix_inversion(new_mesh)
-    mesh_flip.vertices = o3d.utility.Vector3dVector(new_mesh.vertices)
-    mesh_flip.triangles = o3d.utility.Vector3iVector(new_mesh.faces)"""
-    faces = np.asarray(mesh_norm.triangles)
-    triangles = np.ascontiguousarray(np.fliplr(faces))
-    mesh_norm.triangles = o3d.utility.Vector3iVector(triangles)
+
+
+
 
     mesh.compute_vertex_normals()
     mesh_flip.compute_vertex_normals()
@@ -359,3 +384,19 @@ def testing():
 
 
 testing()
+
+
+def axis_search(db_path="./benchmark/db/"):
+    for (root, dirs, files) in os.walk(db_path):
+
+        for filename in files:
+
+            if filename.endswith(".off") or filename.endswith(".ply"):
+                filepath = root + '/' + filename
+                mesh = load_mesh(filepath)
+                print(filename)
+                mesh = translate_to_origin(mesh)
+                mesh = align_eigenvectors(mesh)
+                mesh = flip_test_broken(mesh)
+
+#axis_search()
