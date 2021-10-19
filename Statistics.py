@@ -94,6 +94,8 @@ def show_shape_statistics(mesh, filename):
     print(f"watertight:             {stats['is_watertight']}")
     print(f"orientable:             {orientable}")
 
+    print(stats)
+
 
 def save_statistics(db_path, db_name):
 
@@ -108,6 +110,7 @@ def save_statistics(db_path, db_name):
                 mesh = load_mesh(filepath)
 
                 stats = statistics_to_save(mesh, filename)
+                del stats['box_points_array']
 
                 output.append(stats)
 
