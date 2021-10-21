@@ -3,6 +3,7 @@ from utils import create_new_db, save_shape
 import open3d as o3d
 import numpy as np
 import os
+import trimesh as tm
 import copy
 
 
@@ -180,16 +181,6 @@ def compute_pca(mesh):
     return eigenvectors, eigenvalues
 
 
-def compute_angle(v1, v2):
-    """
-    Computes the angle between two vectors in radians.
-    """
-    cos_angle = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
-    angle = np.arccos(cos_angle)
-
-    return angle
-
-
 def align_eigenvectors(mesh):
     """
     This function alignes the mesh according to the their eigenvectors.
@@ -278,7 +269,7 @@ def flip_test(mesh):
     :return: the flipped mesh.
     """
 
-    print("\nFlipping the mesh brokenly....")
+    print("\nFlipping the mesh...")
 
     f_x = 0
     f_y = 0
@@ -318,6 +309,18 @@ def flip_test(mesh):
         faces = np.asarray(mesh.triangles)
         triangles = np.ascontiguousarray(np.fliplr(faces))
         mesh.triangles = o3d.utility.Vector3iVector(triangles)
+
+    # just a try:
+    mesh.compute_vertex_normals()
+    tm_mesh = tm.Trimesh(np.asarray(mesh.vertices), np.asarray(mesh.triangles), vertex_normals=np.asarray(mesh.vertex_normals))
+
+    tm_mesh.fix_normals()
+    tm.repair.fix_inversion(tm_mesh)
+    tm.repair.broken_faces(tm_mesh)
+    tm_mesh.remove_duplicate_faces()
+    tm_mesh.fill_holes()
+
+    mesh = tm_mesh.as_open3d
 
     print("Mesh flipped.")
 
