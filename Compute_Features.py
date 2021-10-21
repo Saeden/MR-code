@@ -66,7 +66,7 @@ def compute_one_local_feature(mesh, file_name, feature):
     :return: a numpy array with the computed local features.
     """
 
-    sample_count = 10
+    sample_count = 1000000
 
     if feature == 'a3' or feature == 'd3':
         sample_points = 3
