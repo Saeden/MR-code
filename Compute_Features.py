@@ -39,8 +39,8 @@ def compute_global_features(mesh):
     compactness = (area**3)/(36*np.pi*(volume**2))
     sphericity = 1/compactness
 
-    # diameter as the minimum of the coordinates of the max_bound - min_bound of the shape.
-    diameter = min(mesh.get_max_bound() - mesh.get_min_bound())
+    # diameter as the distance of the max_bound vertex and min_bound vertex of the shape.
+    diameter = distance_between_2_points(mesh.get_max_bound(), mesh.get_min_bound())
 
     aabbox_volume = o3d.geometry.AxisAlignedBoundingBox.get_axis_aligned_bounding_box(mesh).volume()
 
@@ -319,4 +319,8 @@ def export_volume_differences():
         writer.writerows(output)
 
 
-#compute_all_features_database()
+
+mesh = load_mesh("./benchmark/db_ref_normalised/0/m99/m99.off")
+gb = compute_global_features(mesh)
+
+print(gb)
