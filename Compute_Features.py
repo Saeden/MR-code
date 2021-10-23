@@ -43,6 +43,7 @@ def compute_global_features(mesh):
     diameter = distance_between_2_points(mesh.get_max_bound(), mesh.get_min_bound())
 
     aabbox_volume = o3d.geometry.AxisAlignedBoundingBox.get_axis_aligned_bounding_box(mesh).volume()
+    rectangularity = volume / aabbox_volume
 
     eigenvectors, eigenvalues = compute_pca(mesh)
     eccentricity = abs(max(eigenvalues))/abs(min(eigenvalues))
@@ -53,6 +54,7 @@ def compute_global_features(mesh):
     global_features['sphericity'] = sphericity
     global_features['diameter'] = diameter
     global_features['aabbox_volume'] = aabbox_volume
+    global_features['rectangularity'] = rectangularity
     global_features['eccentricity'] = eccentricity
 
     return global_features
