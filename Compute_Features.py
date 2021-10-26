@@ -2,10 +2,10 @@ from Normalization import compute_pca, get_barycenter
 from Mesh_Reading import *
 from utils import *
 import numpy as np
-import trimesh as tm
 import csv
 import random
 from math import sqrt
+from time import time
 
 
 def volume_tetrahedron(p1, p2, p3, center):
@@ -64,7 +64,7 @@ def compute_one_local_feature(mesh, file_name, feature):
     """
     This function compute a single local features - at user choice - of a single shape.
     :param mesh: the mesh whose local features have to be computed.
-    :param feature: available modes -> 'a3', 'd1', 'd2', 'd2', 'd3' or 'd4'.
+    :param feature: available modes -> 'a3', 'd1', 'd2', 'd3' or 'd4'.
     :return: a numpy array with the computed local features.
     """
 
@@ -92,7 +92,7 @@ def compute_one_local_feature(mesh, file_name, feature):
     else:
         root = num_of_vertices
 
-    list_of_vertices = range(0, num_of_vertices)
+    list_of_vertices = np.asarray(range(0, num_of_vertices))
 
     result = np.zeros(root**sample_points)
     index = 0
@@ -151,6 +151,87 @@ def compute_one_local_feature(mesh, file_name, feature):
     return result
 
 
+"""def compute_one_local_feature_ok(mesh, file_name):
+
+    t1 = time()
+
+    root = 1000
+
+    # initialization
+    vertices = np.asarray(mesh.vertices)
+    num_of_vertices = len(vertices)
+    barycenter = get_barycenter(mesh)
+
+    list_of_vertices = np.asarray(range(0, num_of_vertices))
+
+    result_a3 = np.zeros(root*1000)
+    result_d1 = np.zeros(root)
+    result_d2 = np.zeros(root*10)
+    result_d3 = np.zeros(root*1000)
+    result_d4 = np.zeros(root*1000)
+
+    index_a3 = 0
+    index_d1 = 0
+    index_d2 = 0
+    index_d3 = 0
+    index_d4 = 0
+
+    # start of the algorithm
+    for i in range(root):
+        print("File:", file_name + ',', "iteration:", i+1, "/", root)
+        vi = random.choice(list_of_vertices)
+        p1 = vertices[vi]
+
+        distance = distance_between_2_points(p1, barycenter)
+        result_d1[index_d1] = distance
+        index_d1 += 1
+
+        if index_d1 % (root/10) == 0:
+            for j in range(root):
+                vj = random.choice(list_of_vertices)
+                while vi == vj:
+                    vj = random.choice(list_of_vertices)
+                p2 = vertices[vj]
+
+                distance = distance_between_2_points(p1, p2)
+                result_d2[index_d2] = distance
+                index_d2 += 1
+
+
+                if index_d2 % (root/100) == 0:
+                    for k in range(root):
+                        vk = random.choice(list_of_vertices)
+                        while vi == vk or vj == vk:
+                            vk = random.choice(list_of_vertices)
+                        p3 = vertices[vk]
+
+                        area = 0.5*(np.linalg.norm(np.cross((p2-p1), (p3-p1))))
+                        result_d3[index_d3] = area
+                        index_d3 += 1
+
+                        angle = compute_angle((p2-p1), (p3-p2))
+                        result_a3[index_a3] = angle
+                        index_a3 += 1
+
+                        if index_d3 % (root) == 0:
+                            for l in range(root):
+                                vl = random.choice(list_of_vertices)
+                                while vi == vl or vj == vl or vk == vl:
+                                    vl = random.choice(list_of_vertices)
+                                p4 = vertices[vl]
+
+                                volume = abs(volume_tetrahedron(p1, p2, p3, p4))
+                                result_d4[index_d4] = volume
+                                index_d4 += 1
+
+    t2 = time()
+
+    print("Time:", t2 - t1)
+
+    return result_a3, result_d1, result_d2, result_d3, result_d4"""
+
+
+
 def compute_all_local_features(mesh, file_name):
 
     local_features = {}
@@ -171,27 +252,27 @@ def compute_all_local_features(mesh, file_name):
 
     # filling the dictionary with the new features
     for i in range(number_of_bins):
-        local_features['a3_' + str(i+1)] = a3[i]
+        local_features['a3_' + str(i+1)] = a3[i]/sum(a3)
     for i in range(number_of_bins):
         local_features['a3_range_' + str(i+1)] = a3_bin[i]
 
     for i in range(number_of_bins):
-        local_features['d1_' + str(i+1)] = d1[i]
+        local_features['d1_' + str(i+1)] = d1[i]/sum(d1)
     for i in range(number_of_bins):
         local_features['d1_range_' + str(i+1)] = d1_bin[i]
 
     for i in range(number_of_bins):
-        local_features['d2_' + str(i+1)] = d2[i]
+        local_features['d2_' + str(i+1)] = d2[i]/sum(d2)
     for i in range(number_of_bins):
         local_features['d2_range_' + str(i+1)] = d2_bin[i]
 
     for i in range(number_of_bins):
-        local_features['d3_' + str(i+1)] = d3[i]
+        local_features['d3_' + str(i+1)] = d3[i]/sum(d3)
     for i in range(number_of_bins):
         local_features['d3_range_' + str(i+1)] = d3_bin[i]
 
     for i in range(number_of_bins):
-        local_features['d4_' + str(i+1)] = d4[i]
+        local_features['d4_' + str(i+1)] = d4[i]/sum(d4)
     for i in range(number_of_bins):
         local_features['d4_range_' + str(i+1)] = d4_bin[i]
 
@@ -291,7 +372,6 @@ def export_volume_differences():
                 original_tm_volume = tm_mesh.volume
 
                 tm_mesh.fix_normals()
-                tm.repair.fix_inversion(tm_mesh)
                 tm_mesh.remove_duplicate_faces()
                 tm_mesh.fill_holes()
 
@@ -322,7 +402,38 @@ def export_volume_differences():
 
 
 
-mesh = load_mesh("./benchmark/db_ref_normalised/0/m99/m99.off")
-gb = compute_global_features(mesh)
+def try_():
 
-print(gb)
+    v = 1000
+    iteration_i = 0
+    iteration_j = 0
+    iteration_k = 0
+    iteration_l = 0
+
+    for i in range(v):
+        iteration_i += 1
+
+        if iteration_i % (v/10) == 0:
+            for j in range(v):
+                iteration_j += 1
+
+                if iteration_j % (v/100) == 0:
+                    for k in range(v):
+                        iteration_k += 1
+
+                        if iteration_k % (v/4) == 0:
+                            for l in range(v):
+                                iteration_l += 1
+
+    return iteration_i, iteration_j, iteration_k, iteration_l
+
+
+
+
+mesh = load_mesh("./benchmark/db_ref_normalised/0/m99/m99.off")
+#result_a3, result_d1, result_d2, result_d3, result_d4 = compute_one_local_feature_ok(mesh, "m99")
+feat = compute_all_features_one_shape(mesh, "m99")
+print(feat)
+
+
+
