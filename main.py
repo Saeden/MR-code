@@ -1,14 +1,14 @@
 """
 To make the application work, install:
 
-trimesh as tm
+trimesh
 pyglet
 scipy
-open3d as o3d
+open3d (not sure if it works for python > 3.7.7)
 os
 csv
 math
-numpy as np
+numpy
 shutil
 copy
 

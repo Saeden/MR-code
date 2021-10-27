@@ -60,6 +60,42 @@ def compute_global_features(mesh):
     return global_features
 
 
+def compute_d3(mesh):
+
+    t1 = time()
+
+    n = 1000000
+    vertices = np.asarray(mesh.vertices)
+    num_of_vertices = len(vertices)
+    k = int(n ** (1/3))
+    result = np.zeros(k ** 3)
+    index = 0
+
+    for i in range(k):
+        print("Iteration:", i + 1, "/", k)
+        vi = int(num_of_vertices * random.random())
+        p1 = vertices[vi]
+
+        for j in range(k):
+            vj = int(num_of_vertices * random.random())
+            while vi == vj:
+                vj = int(num_of_vertices * random.random())
+            p2 = vertices[vj]
+
+            for l in range(k):
+                vl = int(num_of_vertices * random.random())
+                while vi == vl or vj == vl:
+                    vl = int(num_of_vertices * random.random())
+                p3 = vertices[vl]
+
+                area = 0.5*(np.linalg.norm(np.cross((p2-p1), (p3-p1))))
+                result[index] = area
+                index += 1
+    t2 = time()
+    print("Time:", t2-t1)
+    return result
+
+
 def compute_one_local_feature(mesh, file_name, feature):
     """
     This function compute a single local features - at user choice - of a single shape.
@@ -92,15 +128,13 @@ def compute_one_local_feature(mesh, file_name, feature):
     else:
         root = num_of_vertices
 
-    list_of_vertices = np.asarray(range(0, num_of_vertices))
-
     result = np.zeros(root**sample_points)
     index = 0
 
     # start of the algorithm
     for i in range(root):
         print("File:", file_name + ',', "feature:", feature + ',', "iteration:", i+1, "/", root)
-        vi = random.choice(list_of_vertices)
+        vi = int(num_of_vertices * random.random())
         p1 = vertices[vi]
 
         if feature == 'd1':
@@ -110,9 +144,9 @@ def compute_one_local_feature(mesh, file_name, feature):
 
         if sample_points > 1:
             for j in range(root):
-                vj = random.choice(list_of_vertices)
+                vj = int(num_of_vertices * random.random())
                 while vi == vj:
-                    vj = random.choice(list_of_vertices)
+                    vj = int(num_of_vertices * random.random())
                 p2 = vertices[vj]
 
                 if feature == 'd2':
@@ -122,9 +156,9 @@ def compute_one_local_feature(mesh, file_name, feature):
 
                 if sample_points > 2:
                     for k in range(root):
-                        vk = random.choice(list_of_vertices)
+                        vk = int(num_of_vertices * random.random())
                         while vi == vk or vj == vk:
-                            vk = random.choice(list_of_vertices)
+                            vk = int(num_of_vertices * random.random())
                         p3 = vertices[vk]
 
                         if feature == 'd3':
@@ -139,9 +173,9 @@ def compute_one_local_feature(mesh, file_name, feature):
 
                         if sample_points > 3:
                             for l in range(root):
-                                vl = random.choice(list_of_vertices)
+                                vl = int(num_of_vertices * random.random())
                                 while vi == vl or vj == vl or vk == vl:
-                                    vl = random.choice(list_of_vertices)
+                                    vl = int(num_of_vertices * random.random())
                                 p4 = vertices[vl]
 
                                 volume = abs(volume_tetrahedron(p1, p2, p3, p4))
@@ -236,11 +270,17 @@ def compute_all_local_features(mesh, file_name):
 
     local_features = {}
 
+    t1 = time()
+
     a3_raw = compute_one_local_feature(mesh, file_name, feature='a3')
     d1_raw = compute_one_local_feature(mesh, file_name, feature='d1')
     d2_raw = compute_one_local_feature(mesh, file_name, feature='d2')
     d3_raw = compute_one_local_feature(mesh, file_name, feature='d3')
     d4_raw = compute_one_local_feature(mesh, file_name, feature='d4')
+
+    t2 = time()
+
+    print(t2-t1)
 
     number_of_bins = 10
 
@@ -428,12 +468,23 @@ def try_():
     return iteration_i, iteration_j, iteration_k, iteration_l
 
 
+def try_random():
+
+    number = int(1450 * random.random())
+
+    print(number)
+
+
 
 
 mesh = load_mesh("./benchmark/db_ref_normalised/0/m99/m99.off")
 #result_a3, result_d1, result_d2, result_d3, result_d4 = compute_one_local_feature_ok(mesh, "m99")
-feat = compute_all_features_one_shape(mesh, "m99")
-print(feat)
+#feat = compute_all_features_one_shape(mesh, "m99")
+#print(feat)
+
+result = compute_all_local_features(mesh, "m99")
+
+print(result)
 
 
 

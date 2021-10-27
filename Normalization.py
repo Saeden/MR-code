@@ -103,6 +103,10 @@ def normalise_mesh_step2(mesh):
     flipped_mesh = flip_test(aligned_mesh)
     scaled_mesh = scale_aabbox_to_unit(flipped_mesh)
 
+    scaled_mesh.remove_duplicated_triangles()
+    scaled_mesh.remove_duplicated_vertices()
+    scaled_mesh.remove_degenerate_triangles()
+
     return scaled_mesh
 
 
@@ -309,18 +313,6 @@ def flip_test(mesh):
         faces = np.asarray(mesh.triangles)
         triangles = np.ascontiguousarray(np.fliplr(faces))
         mesh.triangles = o3d.utility.Vector3iVector(triangles)
-
-    # just a try:
-    mesh.compute_vertex_normals()
-    tm_mesh = tm.Trimesh(np.asarray(mesh.vertices), np.asarray(mesh.triangles), vertex_normals=np.asarray(mesh.vertex_normals))
-
-    tm_mesh.fix_normals()
-    tm.repair.fix_inversion(tm_mesh)
-    tm.repair.broken_faces(tm_mesh)
-    tm_mesh.remove_duplicate_faces()
-    tm_mesh.fill_holes()
-
-    mesh = tm_mesh.as_open3d
 
     print("Mesh flipped.")
 
