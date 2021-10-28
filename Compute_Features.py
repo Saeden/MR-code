@@ -5,6 +5,7 @@ import numpy as np
 import csv
 import random
 from math import sqrt
+import pandas as pd
 from time import time
 
 
@@ -68,7 +69,7 @@ def compute_one_local_feature(mesh, file_name, feature):
     :return: a numpy array with the computed local features.
     """
 
-    sample_count = 200000
+    sample_count = 100000
 
     if feature == 'a3' or feature == 'd3':
         sample_points = 3
@@ -217,39 +218,39 @@ def compute_all_features_one_shape(mesh, file_name):
 
 def compute_all_features_database():
 
-    output = []
     database = which_database()
 
     db_path = "./benchmark/" + database
 
     counter = 0
 
+    features_filename = 'all_features.csv'
+
     for (root, dirs, files) in os.walk(db_path):
 
         for filename in files:
 
-            if filename.endswith(".off") or filename.endswith(".ply"):
+            file_name = filename[:filename.rfind('.')]
+            df = pd.read_csv(features_filename)
+            processed = df['file_name'].tolist()
+
+            if (filename.endswith(".off") or filename.endswith(".ply")) and file_name not in processed:
 
                 filepath = root+'/'+filename
-                file_name = filename[:filename.rfind('.')]
 
                 mesh = load_mesh(filepath)
 
                 all_features = compute_all_features_one_shape(mesh, file_name)
-                counter += 1
 
-                print("Number of shapes processed:", counter, "/ 1793")
+                df = df.append(all_features, ignore_index=True)
 
-                output.append(all_features)
+            counter += 1
+            if os.path.exists(features_filename):
+                os.remove(features_filename)
+            df.to_csv(features_filename, index=False)
 
-    fieldnames = [i for i in all_features]
+            print("Number of shapes processed:", counter, "/ 1793")
 
-    filename = 'all_features.csv'
-
-    with open(filename, 'w', encoding='UTF8', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(output)
 
 
 def distance_between_2_points(p1, p2):
@@ -319,3 +320,6 @@ def export_volume_differences():
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(output)
+
+
+compute_all_features_database()
