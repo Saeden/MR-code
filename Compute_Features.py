@@ -129,7 +129,7 @@ def compute_one_local_feature(mesh, file_name, feature):
                             p3 = vertices[vk]
 
                         if feature == 'd3':
-                            area = 0.5*(np.linalg.norm(np.cross((p2-p1), (p3-p1))))
+                            area = sqrt(0.5*(np.linalg.norm(np.cross((p2-p1), (p3-p1)))))
                             result[index] = area
                             index += 1
 
@@ -146,7 +146,7 @@ def compute_one_local_feature(mesh, file_name, feature):
                                     vl = int(num_of_vertices * random.random())
                                     p4 = vertices[vl]
 
-                                volume = abs(volume_tetrahedron(p1, p2, p3, p4))
+                                volume = np.cbrt(abs(volume_tetrahedron(p1, p2, p3, p4)))
                                 result[index] = volume
                                 index += 1
 
