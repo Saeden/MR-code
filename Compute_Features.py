@@ -5,7 +5,7 @@ import numpy as np
 import csv
 import random
 from math import sqrt
-from time import time
+import pandas as pd
 
 
 def volume_tetrahedron(p1, p2, p3, center):
@@ -68,7 +68,7 @@ def compute_one_local_feature(mesh, file_name, feature):
     :return: a numpy array with the computed local features.
     """
 
-    sample_count = 200000
+    sample_count = 100000
 
     if feature == 'a3' or feature == 'd3':
         sample_points = 3
@@ -128,11 +128,12 @@ def compute_one_local_feature(mesh, file_name, feature):
                             p3 = vertices[vk]
 
                         if feature == 'd3':
-                            area = 0.5*(np.linalg.norm(np.cross((p2-p1), (p3-p1))))
+                            area = sqrt(0.5*(np.linalg.norm(np.cross((p2-p1), (p3-p1)))))
                             result[index] = area
                             index += 1
 
                         elif feature == 'a3':
+
                             angle = compute_angle((p2-p1), (p3-p2))
                             result[index] = angle
                             index += 1
@@ -145,7 +146,7 @@ def compute_one_local_feature(mesh, file_name, feature):
                                     vl = int(num_of_vertices * random.random())
                                     p4 = vertices[vl]
 
-                                volume = abs(volume_tetrahedron(p1, p2, p3, p4))
+                                volume = np.cbrt(abs(volume_tetrahedron(p1, p2, p3, p4)))
                                 result[index] = volume
                                 index += 1
 
@@ -217,39 +218,45 @@ def compute_all_features_one_shape(mesh, file_name):
 
 def compute_all_features_database():
 
-    output = []
     database = which_database()
 
     db_path = "./benchmark/" + database
 
     counter = 0
 
+    features_filename = 'all_features.csv'
+
+    if not os.path.exists(features_filename):
+        with open(features_filename, 'w', encoding='UTF8', newline='') as f:
+            writer = csv.writer(f)
+            column_names = get_column_names()
+            writer.writerow(column_names)
+
     for (root, dirs, files) in os.walk(db_path):
 
         for filename in files:
 
-            if filename.endswith(".off") or filename.endswith(".ply"):
+            file_name = filename[:filename.rfind('.')]
+            df = pd.read_csv(features_filename)
+            processed = df['file_name'].tolist()
+
+            if (filename.endswith(".off") or filename.endswith(".ply")) and file_name not in processed:
 
                 filepath = root+'/'+filename
-                file_name = filename[:filename.rfind('.')]
 
                 mesh = load_mesh(filepath)
 
                 all_features = compute_all_features_one_shape(mesh, file_name)
-                counter += 1
 
-                print("Number of shapes processed:", counter, "/ 1793")
+                df = df.append(all_features, ignore_index=True)
 
-                output.append(all_features)
+            counter += 1
 
-    fieldnames = [i for i in all_features]
+            if os.path.exists(features_filename):
+                os.remove(features_filename)
+            df.to_csv(features_filename, index=False)
 
-    filename = 'all_features.csv'
-
-    with open(filename, 'w', encoding='UTF8', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(output)
+            print("Number of shapes processed:", counter, "/ 1793")
 
 
 def distance_between_2_points(p1, p2):
@@ -259,9 +266,16 @@ def distance_between_2_points(p1, p2):
 
 def compute_angle(v1, v2):
     """
-    Computes the angle between two vectors in radians.
+    The computed angle is in radians.
     """
     cos_angle = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
+
+    if cos_angle > 1:
+        cos_angle = 1
+
+    if cos_angle < -1:
+        cos_angle = -1
+
     angle = np.arccos(cos_angle)
 
     return angle
@@ -319,3 +333,33 @@ def export_volume_differences():
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(output)
+
+
+def export_features_one_shape(features_dict, filename):
+
+    output = [features_dict]
+    fieldnames = [i for i in features_dict]
+
+    filename = filename + '_features.csv'
+
+    with open(filename, 'w', encoding='UTF8', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(output)
+
+
+def get_column_names():
+
+    column_names = ["file_name", "shape_number", "area", "volume", "compactness", "sphericity", "diameter", "aabbox_volume", "rectangularity", "eccentricity",
+                    "a3_1", "a3_2", "a3_3", "a3_4", "a3_5", "a3_6", "a3_7", "a3_8", "a3_9", "a3_10", "a3_11", "a3_12", "a3_13", "a3_14", "a3_15",
+                    "a3_range_1", "a3_range_2", "a3_range_3", "a3_range_4", "a3_range_5", "a3_range_6", "a3_range_7", "a3_range_8", "a3_range_9", "a3_range_10", "a3_range_11", "a3_range_12", "a3_range_13", "a3_range_14", "a3_range_15",
+                    "d1_1", "d1_2", "d1_3", "d1_4", "d1_5", "d1_6", "d1_7", "d1_8", "d1_9", "d1_10", "d1_11", "d1_12", "d1_13", "d1_14", "d1_15",
+                    "d1_range_1", "d1_range_2", "d1_range_3", "d1_range_4", "d1_range_5", "d1_range_6", "d1_range_7", "d1_range_8", "d1_range_9", "d1_range_10", "d1_range_11", "d1_range_12", "d1_range_13", "d1_range_14", "d1_range_15",
+                    "d2_1", "d2_2", "d2_3", "d2_4", "d2_5", "d2_6", "d2_7", "d2_8", "d2_9", "d2_10", "d2_11", "d2_12", "d2_13", "d2_14", "d2_15",
+                    "d2_range_1", "d2_range_2", "d2_range_3", "d2_range_4", "d2_range_5", "d2_range_6", "d2_range_7", "d2_range_8", "d2_range_9", "d2_range_10", "d2_range_11", "d2_range_12", "d2_range_13", "d2_range_14", "d2_range_15",
+                    "d3_1", "d3_2", "d3_3", "d3_4", "d3_5", "d3_6", "d3_7", "d3_8", "d3_9", "d3_10", "d3_11", "d3_12", "d3_13", "d3_14", "d3_15",
+                    "d3_range_1", "d3_range_2", "d3_range_3", "d3_range_4", "d3_range_5", "d3_range_6", "d3_range_7", "d3_range_8", "d3_range_9", "d3_range_10", "d3_range_11", "d3_range_12", "d3_range_13", "d3_range_14", "d3_range_15",
+                    "d4_1", "d4_2", "d4_3", "d4_4", "d4_5", "d4_6", "d4_7", "d4_8", "d4_9", "d4_10", "d4_11", "d4_12", "d4_13", "d4_14", "d4_15",
+                    "d4_range_1", "d4_range_2", "d4_range_3", "d4_range_4", "d4_range_5", "d4_range_6", "d4_range_7", "d4_range_8", "d4_range_9", "d4_range_10", "d4_range_11", "d4_range_12", "d4_range_13", "d4_range_14", "d4_range_15"]
+
+    return column_names
