@@ -128,10 +128,6 @@ def compute_one_local_feature(mesh, file_name, feature):
                             vk = int(num_of_vertices * random.random())
                             p3 = vertices[vk]
 
-                        if (p1 == p3).all():
-                            print(p1, p3)
-                            exit()
-
                         if feature == 'd3':
                             area = sqrt(0.5*(np.linalg.norm(np.cross((p2-p1), (p3-p1)))))
                             result[index] = area
