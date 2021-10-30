@@ -128,12 +128,17 @@ def compute_one_local_feature(mesh, file_name, feature):
                             vk = int(num_of_vertices * random.random())
                             p3 = vertices[vk]
 
+                        if (p1 == p3).all():
+                            print(p1, p3)
+                            exit()
+
                         if feature == 'd3':
                             area = sqrt(0.5*(np.linalg.norm(np.cross((p2-p1), (p3-p1)))))
                             result[index] = area
                             index += 1
 
                         elif feature == 'a3':
+
                             angle = compute_angle((p2-p1), (p3-p2))
                             result[index] = angle
                             index += 1
@@ -263,6 +268,10 @@ def compute_angle(v1, v2):
     Computes the angle between two vectors in radians.
     """
     cos_angle = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
+
+    if cos_angle > 1 or cos_angle < -1:
+        cos_angle = 1
+
     angle = np.arccos(cos_angle)
 
     return angle
@@ -322,4 +331,6 @@ def export_volume_differences():
         writer.writerows(output)
 
 
-compute_all_features_database()
+mesh = load_mesh("./benchmark/db_ref_normalised/9/m974/m974.off")
+feat = compute_all_features_one_shape(mesh, "m974")
+print(feat)
