@@ -227,6 +227,9 @@ def compute_all_features_database():
 
     features_filename = 'all_features.csv'
 
+    if not os.path.exists(features_filename):
+
+
     for (root, dirs, files) in os.walk(db_path):
 
         for filename in files:
@@ -246,12 +249,12 @@ def compute_all_features_database():
                 df = df.append(all_features, ignore_index=True)
 
             counter += 1
+
             if os.path.exists(features_filename):
                 os.remove(features_filename)
             df.to_csv(features_filename, index=False)
 
             print("Number of shapes processed:", counter, "/ 1793")
-
 
 
 def distance_between_2_points(p1, p2):
@@ -261,12 +264,15 @@ def distance_between_2_points(p1, p2):
 
 def compute_angle(v1, v2):
     """
-    Computes the angle between two vectors in radians.
+    The computed angle is in radians.
     """
     cos_angle = np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
 
-    if cos_angle > 1 or cos_angle < -1:
+    if cos_angle > 1:
         cos_angle = 1
+
+    if cos_angle < -1:
+        cos_angle = -1
 
     angle = np.arccos(cos_angle)
 
@@ -327,6 +333,14 @@ def export_volume_differences():
         writer.writerows(output)
 
 
-mesh = load_mesh("./benchmark/db_ref_normalised/9/m974/m974.off")
-feat = compute_all_features_one_shape(mesh, "m974")
-print(feat)
+def export_features_one_shape(features_dict, filename):
+
+    output = [features_dict]
+    fieldnames = [i for i in features_dict]
+
+    filename = filename + '_features.csv'
+
+    with open(filename, 'w', encoding='UTF8', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(output)
