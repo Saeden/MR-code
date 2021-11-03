@@ -110,6 +110,21 @@ def get_path():
     return path
 
 
+def get_path_from_shape(shape_name, database):
+    """
+        This function will construct the path of a shape that has to be opened.
+        It is passed the name of the shape and the database in which it is contained.
+        :return: the path of the shape to be opened.
+        """
+    shape_number = int(shape_name[1:])
+
+    shape_folder = str(int(shape_number / 100))
+
+    path = "./benchmark/" + database + "/" + shape_folder + "/" + shape_name + "/" + shape_name + ".off"
+
+    return path
+
+
 def get_read_params():
     """
     This function allows the choice of displaying the x, y, z coordinates from the origin and the
