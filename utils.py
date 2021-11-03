@@ -1,6 +1,8 @@
 import os
 import shutil
 import open3d as o3d
+import pandas as pd
+import matplotlib.pyplot as plt
 
 
 def read_classification_data(filepath, classification_dict=None):
@@ -168,4 +170,114 @@ def save_shape(filename, path, mesh):
     new_filepath = (new_root + "/" + filename)
 
     o3d.io.write_triangle_mesh(new_filepath, mesh, write_vertex_normals=False)
+
+
+def create_overlapping_graphs(bins=15):
+
+    path = "./all_features.csv"
+
+    df = pd.read_csv(path, header=0)
+
+    classes_overkill = get_complete_classification()
+    classes = []
+
+    for shape, class_ in classes_overkill.items():
+        if class_ not in classes:
+            classes.append(class_)
+
+    for i in classes:
+
+        df_class = df.loc[(df['Class'] == i)]
+
+        #A3
+        fig = plt.figure(figsize=(15, 10))
+        for index, shape in df_class.iterrows():
+
+            a3_x = [shape[f"a3_range_{bin+1}"] for bin in range(bins)]
+            a3_y = [shape[f"a3_{bin+1}"] for bin in range(bins)]
+
+            plt.plot(a3_x, a3_y)
+
+        plt.title("Distribution over the class " + i + " for A3 descriptor", fontsize=22)
+        plt.xlabel("Feature value", fontsize=18)
+        plt.ylabel("Frequency", fontsize=18)
+
+        fig.savefig("./class_graphs/A3/" + i + "_A3.png", bbox_inches="tight", dpi=300)
+        plt.close('all')
+
+        #D1
+        fig = plt.figure(figsize=(15, 10))
+
+        for index, shape in df_class.iterrows():
+
+            d1_x = [shape[f"d1_range_{bin+1}"] for bin in range(bins)]
+            d1_y = [shape[f"d1_{bin+1}"] for bin in range(bins)]
+
+            plt.plot(d1_x, d1_y)
+
+        plt.title("Distribution over the class " + i + " for D1 descriptor", fontsize=22)
+        plt.xlabel("Feature value", fontsize=18)
+        plt.ylabel("Frequency", fontsize=18)
+
+        fig.savefig("./class_graphs/D1/" + i + "_D1.png", bbox_inches="tight", dpi=300)
+        plt.close('all')
+
+        #D2
+        fig = plt.figure(figsize=(15, 10))
+
+        for index, shape in df_class.iterrows():
+
+            d2_x = [shape[f"d2_range_{bin+1}"] for bin in range(bins)]
+            d2_y = [shape[f"d2_{bin+1}"] for bin in range(bins)]
+
+            plt.plot(d2_x, d2_y)
+
+        plt.title("Distribution over the class " + i + " for D2 descriptor", fontsize=22)
+        plt.xlabel("Feature value", fontsize=18)
+        plt.ylabel("Frequency", fontsize=18)
+
+        fig.savefig("./class_graphs/D2/" + i + "_D2.png", bbox_inches="tight", dpi=300)
+        plt.close('all')
+
+        #D3
+        fig = plt.figure(figsize=(15, 10))
+
+        for index, shape in df_class.iterrows():
+
+            d3_x = [shape[f"d3_range_{bin+1}"] for bin in range(bins)]
+            d3_y = [shape[f"d3_{bin+1}"] for bin in range(bins)]
+
+            plt.plot(d3_x, d3_y)
+
+        plt.title("Distribution over the class " + i + " for D3 descriptor", fontsize=22)
+        plt.xlabel("Feature value", fontsize=18)
+        plt.ylabel("Frequency", fontsize=18)
+
+        fig.savefig("./class_graphs/D3/" + i + "_D3.png", bbox_inches="tight", dpi=300)
+        plt.close('all')
+
+        #D4
+        fig = plt.figure(figsize=(15, 10))
+
+        for index, shape in df_class.iterrows():
+
+            d4_x = [shape[f"d4_range_{bin+1}"] for bin in range(bins)]
+            d4_y = [shape[f"d4_{bin+1}"] for bin in range(bins)]
+
+            plt.plot(d4_x, d4_y)
+
+        plt.title("Distribution over the class " + i + " for D4 descriptor", fontsize=22)
+        plt.xlabel("Feature value", fontsize=18)
+        plt.ylabel("Frequency", fontsize=18)
+
+        fig.savefig("./class_graphs/D4/" + i + "_D4.png", bbox_inches="tight", dpi=300)
+        plt.close('all')
+
+
+create_overlapping_graphs()
+
+
+
+
+
 

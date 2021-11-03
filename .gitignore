@@ -130,6 +130,7 @@ dmypy.json
 
 # Database
 /benchmark/
+/class_graphs/
 
 # file: ~/.gitignore_global
 .DS_Store

@@ -153,4 +153,4 @@ def compute_all_distances(normed_feats_path=None, mesh=None, bin_number=15):
 
 
 #normalise_all_feats("./all_features.csv", save_feats=True)
-compute_all_distances("./normalised_features.csv")
+#compute_all_distances("./normalised_features.csv")
