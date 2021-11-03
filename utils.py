@@ -289,9 +289,26 @@ def create_overlapping_graphs(bins=15):
         plt.close('all')
 
 
-create_overlapping_graphs()
+def produce_latex_includefigures(mode='A3'):
+    """
+    print a bunch of \includegraphics[scale=0.12]{IMAGES/class_graphs/A3/arthropod animal_A3.png}
+    """
+
+    classes_overkill = get_complete_classification()
+    classes = []
+
+    for shape, class_ in classes_overkill.items():
+        if class_ not in classes:
+            classes.append(class_)
+
+    classes.sort()
+
+    for class_ in classes:
+
+        print("\includegraphics[scale=0.12]{IMAGES/class_graphs/" + mode + '/' + class_ + '_' + mode + '.png}')
 
 
+produce_latex_includefigures('D1')
 
 
 
