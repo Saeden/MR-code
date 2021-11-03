@@ -151,9 +151,6 @@ def normalise_feat(feats, norm_param_path="./normalisation_parameters.csv", bin_
         norm_feats[f"d3_{i + 1}"] = feats[f"d3_{i + 1}"]
         norm_feats[f"d4_{i + 1}"] = feats[f"d4_{i + 1}"]
 
-
-
-
     return norm_feats
 
 
@@ -361,10 +358,10 @@ def query_interface():
 #compute_all_distances("./normalised_features.csv", save=True)
 #mesh = load_mesh("./benchmark/db_ref_normalised/0/m0/m0.off")
 
-<<<<<<< HEAD
+""""<<<<<<< HEAD
 #normalise_all_feats("./all_features.csv", save_feats=True)
 #compute_all_distances("./normalised_features.csv")
 =======
 closest_meshes, mesh_name = query_db_mesh(mesh_name="m0", distance_db_path="distance_to_meshes.csv")
 display_query(closest_meshes, mesh_name)
->>>>>>> main
+>>>>>>> main"""

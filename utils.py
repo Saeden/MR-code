@@ -200,12 +200,18 @@ def create_overlapping_graphs(bins=15):
         if class_ not in classes:
             classes.append(class_)
 
+    dpi = 70
+    size_l = 20
+    size_r = 10
+
+    #classes = ['winged_vehicle aircraft', 'underwater_creature animal']
+
     for i in classes:
 
         df_class = df.loc[(df['Class'] == i)]
 
         #A3
-        fig = plt.figure(figsize=(15, 10))
+        fig = plt.figure(figsize=(size_l, size_r))
         for index, shape in df_class.iterrows():
 
             a3_x = [shape[f"a3_range_{bin+1}"] for bin in range(bins)]
@@ -217,11 +223,11 @@ def create_overlapping_graphs(bins=15):
         plt.xlabel("Feature value", fontsize=18)
         plt.ylabel("Frequency", fontsize=18)
 
-        fig.savefig("./class_graphs/A3/" + i + "_A3.png", bbox_inches="tight", dpi=300)
+        fig.savefig("./class_graphs/A3/" + i + "_A3.png", bbox_inches="tight", dpi=dpi)
         plt.close('all')
 
         #D1
-        fig = plt.figure(figsize=(15, 10))
+        fig = plt.figure(figsize=(size_l, size_r))
 
         for index, shape in df_class.iterrows():
 
@@ -234,11 +240,11 @@ def create_overlapping_graphs(bins=15):
         plt.xlabel("Feature value", fontsize=18)
         plt.ylabel("Frequency", fontsize=18)
 
-        fig.savefig("./class_graphs/D1/" + i + "_D1.png", bbox_inches="tight", dpi=300)
+        fig.savefig("./class_graphs/D1/" + i + "_D1.png", bbox_inches="tight", dpi=dpi)
         plt.close('all')
 
         #D2
-        fig = plt.figure(figsize=(15, 10))
+        fig = plt.figure(figsize=(size_l, size_r))
 
         for index, shape in df_class.iterrows():
 
@@ -251,11 +257,11 @@ def create_overlapping_graphs(bins=15):
         plt.xlabel("Feature value", fontsize=18)
         plt.ylabel("Frequency", fontsize=18)
 
-        fig.savefig("./class_graphs/D2/" + i + "_D2.png", bbox_inches="tight", dpi=300)
+        fig.savefig("./class_graphs/D2/" + i + "_D2.png", bbox_inches="tight", dpi=dpi)
         plt.close('all')
 
         #D3
-        fig = plt.figure(figsize=(15, 10))
+        fig = plt.figure(figsize=(size_l, size_r))
 
         for index, shape in df_class.iterrows():
 
@@ -268,11 +274,11 @@ def create_overlapping_graphs(bins=15):
         plt.xlabel("Feature value", fontsize=18)
         plt.ylabel("Frequency", fontsize=18)
 
-        fig.savefig("./class_graphs/D3/" + i + "_D3.png", bbox_inches="tight", dpi=300)
+        fig.savefig("./class_graphs/D3/" + i + "_D3.png", bbox_inches="tight", dpi=dpi)
         plt.close('all')
 
         #D4
-        fig = plt.figure(figsize=(15, 10))
+        fig = plt.figure(figsize=(size_l, size_r))
 
         for index, shape in df_class.iterrows():
 
@@ -285,13 +291,13 @@ def create_overlapping_graphs(bins=15):
         plt.xlabel("Feature value", fontsize=18)
         plt.ylabel("Frequency", fontsize=18)
 
-        fig.savefig("./class_graphs/D4/" + i + "_D4.png", bbox_inches="tight", dpi=300)
+        fig.savefig("./class_graphs/D4/" + i + "_D4.png", bbox_inches="tight", dpi=dpi)
         plt.close('all')
 
 
 def produce_latex_includefigures(mode='A3'):
     """
-    print a bunch of \includegraphics[scale=0.12]{IMAGES/class_graphs/A3/arthropod animal_A3.png}
+    print a bunch of \includegraphics[scale=0.1]{IMAGES/class_graphs/A3/arthropod animal_A3.png}
     """
 
     classes_overkill = get_complete_classification()
@@ -301,15 +307,9 @@ def produce_latex_includefigures(mode='A3'):
         if class_ not in classes:
             classes.append(class_)
 
+    num_classes = 20
     classes.sort()
 
-    for class_ in classes:
+    for class_ in range(num_classes):
 
-        print("\includegraphics[scale=0.12]{IMAGES/class_graphs/" + mode + '/' + class_ + '_' + mode + '.png}')
-
-
-produce_latex_includefigures('D1')
-
-
-
-
+        print("\includegraphics[scale=0.1]{IMAGES/class_graphs/" + mode + '/' + classes[class_] + '_' + mode + '.png}')
