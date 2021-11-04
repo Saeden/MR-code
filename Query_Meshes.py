@@ -7,6 +7,7 @@ from Mesh_Reading import load_mesh
 from utils import get_path_from_shape
 from Compute_Features import compute_all_features_one_shape
 from Normalization import normalise_mesh_step2
+import os.path
 
 
 def normalise_all_feats(feat_path, bin_number=15, save_feats=False, save_params=True):
@@ -56,7 +57,16 @@ def normalise_all_feats(feat_path, bin_number=15, save_feats=False, save_params=
     norm_params['avg_eccent'] = avg_eccent
     norm_params['std_eccent'] = std_eccent
 
+
+    print("Finding normalisation parameters.")
+    printed = False
     for index1, row1 in feats.iterrows():
+        completion = int(((index1+1)/len(feats.index))*100)
+        if completion%5 == 0 and not printed:
+            print(f"Found {completion}% of normalisation parameters.")
+            printed = True
+        if completion%5 == 1:
+            printed = False
         for index2, row2 in feats.iterrows():
             for hf in hist_feats:
                 feat1_hist = [row1[str(hf + str(i + 1))] for i in range(bin_number)]
@@ -79,7 +89,15 @@ def normalise_all_feats(feat_path, bin_number=15, save_feats=False, save_params=
     norm_params['avg_d4'] = sum(hist_dist['d4_']) / len(hist_dist['d4_'])
     norm_params['std_d4'] = np.std(hist_dist['d4_'])
 
+    printed = False
+    print("\nStarting normalisation")
     for index, row in feats.iterrows():
+        completion = int(((index+1) / len(feats.index)) * 100)
+        if completion % 5 == 0 and not printed:
+            print(f"Normalised {completion}% of features.")
+            printed = True
+        if completion % 5 == 1:
+            printed = False
         norm_feats = {}
         norm_feats['file_name'] = row['file_name']
         norm_feats['shape_number'] = row['shape_number']
@@ -126,53 +144,37 @@ def normalise_all_feats(feat_path, bin_number=15, save_feats=False, save_params=
     return all_feats, norm_params
 
 
-def normalise_feat(feats, norm_param_path="./normalisation_parameters.csv", bin_number=15):
-
-    with open(norm_param_path) as f:
-        norm_params = [{k: v for k, v in row.items()}
-                       for row in csv.DictReader(f)][0]
-
-    norm_feats = {}
-    norm_feats['file_name'] = feats['file_name']
-    norm_feats['shape_number'] = feats['shape_number']
-    norm_feats['area'] = (feats['area']-float(norm_params['avg_area']))/float(norm_params['std_area'])
-    norm_feats['volume'] = (feats['volume']-float(norm_params['avg_volume']))/float(norm_params['std_volume'])
-    norm_feats['compactness'] = (feats['compactness']-float(norm_params['avg_compactness']))/float(norm_params['std_compactness'])
-    norm_feats['sphericity'] = (feats['sphericity']-float(norm_params['avg_sphericity']))/float(norm_params['std_sphericity'])
-    norm_feats['diameter'] = (feats['diameter']-float(norm_params['avg_diameter']))/float(norm_params['std_diameter'])
-    norm_feats['aabbox_volume'] = (feats['aabbox_volume']-float(norm_params['avg_aabb_vol']))/float(norm_params['std_aabb_vol'])
-    norm_feats['rectangularity'] = (feats['rectangularity']-float(norm_params['avg_rect']))/float(norm_params['std_rect'])
-    norm_feats['eccentricity'] = (feats['eccentricity']-float(norm_params['avg_eccent']))/float(norm_params['std_eccent'])
-
-    for i in range(bin_number):
-        norm_feats[f"a3_{i+1}"] = feats[f"a3_{i+1}"]
-        norm_feats[f"d1_{i + 1}"] = feats[f"d1_{i + 1}"]
-        norm_feats[f"d2_{i + 1}"] = feats[f"d2_{i + 1}"]
-        norm_feats[f"d3_{i + 1}"] = feats[f"d3_{i + 1}"]
-        norm_feats[f"d4_{i + 1}"] = feats[f"d4_{i + 1}"]
-
-    return norm_feats
-
-
-def compute_all_distances(normed_feats_path=None,norm_params_path = "./normalisation_parameters.csv", bin_number=15, save=False):
+def compute_all_distances(norm_params_path = "./normalisation_parameters.csv", bin_number=15, save=False):
     global_feats = ['area', 'volume', 'compactness', 'sphericity', 'diameter', 'aabbox_volume', 'rectangularity',
                     'eccentricity']
     hist_feats = ['a3_', 'd1_', 'd2_', 'd3_', 'd4_']
     output = []
 
-    if normed_feats_path == None:
-        normed_feats, norm_params = normalise_all_feats("./all_features.csv")
+    if not os.path.isfile("./normalised_features.csv"):
+        print("\nThe features have not been normalised...")
+        print("Normalising now.\n")
+        normed_feats, norm_params = normalise_all_feats("./all_features.csv", save_feats=True)
 
     else:
-        with open(normed_feats_path) as f:
+        with open("./normalised_features.csv") as f:
             normed_feats = [{k: v for k, v in row.items()}
                  for row in csv.DictReader(f)]
         with open(norm_params_path) as f:
             norm_params = [{k: v for k, v in row.items()}
                            for row in csv.DictReader(f)][0]
 
+    index = 0
+    printed = False
+    print("\nCalculating distances now.")
     for feat1 in normed_feats:
+        index += 1
         dist_to_meshes = {'file_name': feat1['file_name'], 'shape_number': feat1['shape_number']}
+        completion = int(((index) / len(normed_feats)) * 100)
+        if completion % 5 == 0 and not printed:
+            print(f"Found {completion}% of distances.")
+            printed = True
+        if completion % 5 == 1:
+                printed = False
         for feat2 in normed_feats:
             global_dist = 0
             hist_dist = []
@@ -199,8 +201,6 @@ def compute_all_distances(normed_feats_path=None,norm_params_path = "./normalisa
 
                 dist_to_meshes[f"dist_to_{feat2['file_name']}"] = total_dist
 
-        print(f"Finished calculating distances for mesh {feat1['shape_number']}")
-
         output.append(dist_to_meshes)
 
     if save:
@@ -216,12 +216,67 @@ def compute_all_distances(normed_feats_path=None,norm_params_path = "./normalisa
     return output
 
 
-def compute_single_distance(mesh_feat, norm_params_path="./normalisation_parameters.csv",  normed_feats_path=None, bin_number=15):
+def query_db_mesh(mesh_name, num_closest_meshes=10):
+    if not os.path.isfile("./distance_to_meshes.csv"):
+        print("\nThe distances have not been calculated yet...")
+        compute_all_distances("./normalised_features.csv", save=True)
+        distance_db = pd.read_csv("./distance_to_meshes.csv", header=0)
+    else:
+        distance_db = pd.read_csv("./distance_to_meshes.csv", header=0)
+
+    closest_meshes = []
+    mesh_distances = distance_db.loc[distance_db['file_name'] == mesh_name].to_dict(orient='records')[0]
+    del mesh_distances['file_name']
+    del mesh_distances['shape_number']
+    sorted_mesh_dist = {key:val for key, val in sorted(mesh_distances.items(), key=lambda item: item[1])}
+    for i in range(num_closest_meshes):
+        closest_meshes.append((list(sorted_mesh_dist)[i+1][8:], list(sorted_mesh_dist.values())[i+1]))
+
+    return closest_meshes, mesh_name
+
+
+def normalise_feat(feats, norm_param_path="./normalisation_parameters.csv", bin_number=15):
+
+    if not os.path.isfile(norm_param_path):
+        print("\nNormalisation parameters have not been calculated.")
+        _, norm_params = normalise_all_feats("./all_features.csv", save_feats=True)
+
+    else:
+        with open(norm_param_path) as f:
+            norm_params = [{k: v for k, v in row.items()}
+                           for row in csv.DictReader(f)][0]
+
+    norm_feats = {}
+    norm_feats['file_name'] = feats['file_name']
+    norm_feats['shape_number'] = feats['shape_number']
+    norm_feats['area'] = (feats['area']-float(norm_params['avg_area']))/float(norm_params['std_area'])
+    norm_feats['volume'] = (feats['volume']-float(norm_params['avg_volume']))/float(norm_params['std_volume'])
+    norm_feats['compactness'] = (feats['compactness']-float(norm_params['avg_compactness']))/float(norm_params['std_compactness'])
+    norm_feats['sphericity'] = (feats['sphericity']-float(norm_params['avg_sphericity']))/float(norm_params['std_sphericity'])
+    norm_feats['diameter'] = (feats['diameter']-float(norm_params['avg_diameter']))/float(norm_params['std_diameter'])
+    norm_feats['aabbox_volume'] = (feats['aabbox_volume']-float(norm_params['avg_aabb_vol']))/float(norm_params['std_aabb_vol'])
+    norm_feats['rectangularity'] = (feats['rectangularity']-float(norm_params['avg_rect']))/float(norm_params['std_rect'])
+    norm_feats['eccentricity'] = (feats['eccentricity']-float(norm_params['avg_eccent']))/float(norm_params['std_eccent'])
+
+    for i in range(bin_number):
+        norm_feats[f"a3_{i+1}"] = feats[f"a3_{i+1}"]
+        norm_feats[f"d1_{i + 1}"] = feats[f"d1_{i + 1}"]
+        norm_feats[f"d2_{i + 1}"] = feats[f"d2_{i + 1}"]
+        norm_feats[f"d3_{i + 1}"] = feats[f"d3_{i + 1}"]
+        norm_feats[f"d4_{i + 1}"] = feats[f"d4_{i + 1}"]
+
+    print("Finished normalising features.")
+
+    return norm_feats
+
+
+def compute_single_distance(mesh_feat, norm_params_path="./normalisation_parameters.csv",  normed_feats_path="./normalised_features.csv", bin_number=15):
     global_feats = ['area', 'volume', 'compactness', 'sphericity', 'diameter', 'aabbox_volume', 'rectangularity',
                     'eccentricity']
     hist_feats = ['a3_', 'd1_', 'd2_', 'd3_', 'd4_']
 
-    if normed_feats_path == None:
+    if not os.path.isfile(normed_feats_path):
+        print("\nThe features have not been normalised.")
         normed_feats, norm_params = normalise_all_feats("./all_features.csv")
 
     else:
@@ -233,7 +288,17 @@ def compute_single_distance(mesh_feat, norm_params_path="./normalisation_paramet
                            for row in csv.DictReader(f)][0]
 
     dist_to_meshes = {'file_name': mesh_feat['file_name'], 'shape_number': mesh_feat['shape_number']}
+    index = 0
+    printed = False
     for feat2 in normed_feats:
+        index += 1
+        completion = int(((index) / len(normed_feats)) * 100)
+        if completion % 5 == 0 and not printed:
+            print(f"Found {completion}% of distances.")
+            printed = True
+        if completion % 5 == 1:
+            printed = False
+
         global_dist = 0
         hist_dist = []
         if mesh_feat['file_name'] == feat2['file_name']:
@@ -264,34 +329,21 @@ def compute_single_distance(mesh_feat, norm_params_path="./normalisation_paramet
     return dist_to_meshes
 
 
-def query_db_mesh(mesh_name, num_closest_meshes=10, distance_db_path=None):
-    if distance_db_path == None:
-        distance_db = compute_all_distances("./normalised_features.csv")
-
-    else:
-        distance_db = pd.read_csv(distance_db_path, header=0)
-
-    closest_meshes = []
-    mesh_distances = distance_db.loc[distance_db['file_name'] == mesh_name].to_dict(orient='records')[0]
-    del mesh_distances['file_name']
-    del mesh_distances['shape_number']
-    sorted_mesh_dist = {key:val for key, val in sorted(mesh_distances.items(), key=lambda item: item[1])}
-    for i in range(num_closest_meshes):
-        closest_meshes.append((list(sorted_mesh_dist)[i+1][8:], list(sorted_mesh_dist.values())[i+1]))
-
-    return closest_meshes, mesh_name
-
-def query_new_mesh(mesh_path, mesh_name, num_closest_meshes=10):
+def query_new_mesh(mesh_path, num_closest_meshes=10):
     """This function loads a new mesh, normalises it and extracts its features. Then a query is performed on the db.
     :return: closest_meshes a list of tuples (mesh_name, distance) and mesh the newly loaded/normalised mesh"""
     mesh = load_mesh(mesh_path)
+    print("\nNormalising mesh.")
     mesh = normalise_mesh_step2(mesh)
-    mesh_feats = compute_all_features_one_shape(mesh, mesh_name)
+    print("\nComputing features for new shape.")
+    mesh_feats = compute_all_features_one_shape(mesh, "m0000")
+    print("\nNormalising features of new shape.")
     normed_feats = normalise_feat(mesh_feats)
+    print("\nCalculating distances of new shape to the database.")
     mesh_distances = compute_single_distance(normed_feats, normed_feats_path="./normalised_features.csv")
     del mesh_distances['file_name']
     del mesh_distances['shape_number']
-
+    #del mesh_distances['Class']
     closest_meshes = []
     sorted_mesh_dist = {key:val for key, val in sorted(mesh_distances.items(), key=lambda item: item[1])}
     for i in range(num_closest_meshes):
@@ -323,7 +375,7 @@ def display_query(closest_meshes, qmesh_name=None, new_qmesh=None):
         cmesh = load_mesh(path)
         x_transl = (i%5+1)*1.1
         z_transl = -int(i/5)
-        cmesh = cmesh.translate(translation=[(i%5+1)*1.1, 0, -int(i/5)])
+        cmesh = cmesh.translate(translation=[(i%5+1)*1.1, int(i/5), 0])
         cmesh.compute_vertex_normals()
         mesh_objs.append(cmesh)
 
@@ -345,23 +397,32 @@ def query_interface():
         choice1 = int(input("\nChoice: "))
 
     if choice1 == 1:
-        print("lol")
+        print("\nWhich mesh would you like to query? (m0, m1...)")
+        choiceQ = input("Mesh: ")
+        print("How many results would you like to have returned?")
+        choiceR = int(input("Number of results: "))
+        closest_meshes, mesh_name = query_db_mesh(choiceQ, choiceR)
+        print("\nThe results from the query are: ")
+        print(closest_meshes)
+        print("\nWould you like to visualise the results? (1 for yes/0 for no)")
+        choiceRes = int(input("Choice: "))
+        if choiceRes == 1:
+            display_query(closest_meshes, qmesh_name=mesh_name)
 
     elif choice1 == 2:
-        raise Exception("Not implemented")
+        print("\nWhat is the path to the mesh you want to query?")
+        path = input("Path: ")
+        print("How many results would you like to have returned?")
+        choiceR = int(input("Number of results: "))
+        closest_meshes, new_mesh = query_new_mesh(path, choiceR)
+        print("\nWould you like to visualise the results? (1 for yes/0 for no)")
+        choiceRes = int(input("Choice: "))
+        if choiceRes == 1:
+            display_query(closest_meshes, new_qmesh=new_mesh)
 
 
 
 
 
-#normalise_all_feats("./all_features_small.csv", save_feats=True)
-#compute_all_distances("./normalised_features.csv", save=True)
-#mesh = load_mesh("./benchmark/db_ref_normalised/0/m0/m0.off")
+query_interface()
 
-""""<<<<<<< HEAD
-#normalise_all_feats("./all_features.csv", save_feats=True)
-#compute_all_distances("./normalised_features.csv")
-=======
-closest_meshes, mesh_name = query_db_mesh(mesh_name="m0", distance_db_path="distance_to_meshes.csv")
-display_query(closest_meshes, mesh_name)
->>>>>>> main"""
