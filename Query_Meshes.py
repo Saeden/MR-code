@@ -228,6 +228,7 @@ def query_db_mesh(mesh_name, num_closest_meshes=10):
     mesh_distances = distance_db.loc[distance_db['file_name'] == mesh_name].to_dict(orient='records')[0]
     del mesh_distances['file_name']
     del mesh_distances['shape_number']
+    #del mesh_distances['Class']
     sorted_mesh_dist = {key:val for key, val in sorted(mesh_distances.items(), key=lambda item: item[1])}
     for i in range(num_closest_meshes):
         closest_meshes.append((list(sorted_mesh_dist)[i+1][8:], list(sorted_mesh_dist.values())[i+1]))
@@ -373,8 +374,8 @@ def display_query(closest_meshes, qmesh_name=None, new_qmesh=None):
         shape_name = closest_meshes[i][0]
         path = get_path_from_shape(shape_name, database)
         cmesh = load_mesh(path)
-        x_transl = (i%5+1)*1.1
-        z_transl = -int(i/5)
+        #x_transl = (i%5+1)*1.1
+        #z_transl = -int(i/5)
         cmesh = cmesh.translate(translation=[(i%5+1)*1.1, int(i/5), 0])
         cmesh.compute_vertex_normals()
         mesh_objs.append(cmesh)
@@ -384,45 +385,75 @@ def display_query(closest_meshes, qmesh_name=None, new_qmesh=None):
 
 
 def query_interface():
-    print("Querying meshes")
+    print("\nQuerying meshes options:")
     print("1) Query a mesh from the database.")
     print("2) Load your own mesh to query.")
+    print("0) Exit this menu")
 
-    number_of_choices = 2
-    possible_choices = [i + 1 for i in range(number_of_choices)]
-    choice1 = int(input("\nChoice: "))
+
+    number_of_choices = 3
+    possible_choices = [i for i in range(number_of_choices)]
+    choice1 = ""
+    while isinstance(choice1, str):
+        choice1 = input("\nChoice: ")
+        try:
+            choice1 = int(choice1)
+        except ValueError:
+            print("Error! Please enter a number.")
+
+
 
     while choice1 not in possible_choices:
         print("\nError! Invalid choice")
         choice1 = int(input("\nChoice: "))
 
-    if choice1 == 1:
-        print("\nWhich mesh would you like to query? (m0, m1...)")
-        choiceQ = input("Mesh: ")
-        print("How many results would you like to have returned?")
-        choiceR = int(input("Number of results: "))
-        closest_meshes, mesh_name = query_db_mesh(choiceQ, choiceR)
-        print("\nThe results from the query are: ")
-        print(closest_meshes)
-        print("\nWould you like to visualise the results? (1 for yes/0 for no)")
-        choiceRes = int(input("Choice: "))
-        if choiceRes == 1:
-            display_query(closest_meshes, qmesh_name=mesh_name)
+    while choice1 != 0:
+        if choice1 == 1:
+            print("\nWhich mesh would you like to query? (m0, m1...)")
+            choiceQ = input("Mesh: ")
+            print("How many results would you like to have returned?")
+            choiceR = int(input("Number of results: "))
+            closest_meshes, mesh_name = query_db_mesh(choiceQ, choiceR)
+            print("\nThe results from the query are: ")
+            print(closest_meshes)
+            print("\nWould you like to visualise the results? (1 for yes/0 for no)")
+            choiceRes = int(input("Choice: "))
+            if choiceRes == 1:
+                display_query(closest_meshes, qmesh_name=mesh_name)
 
-    elif choice1 == 2:
-        print("\nWhat is the path to the mesh you want to query?")
-        path = input("Path: ")
-        print("How many results would you like to have returned?")
-        choiceR = int(input("Number of results: "))
-        closest_meshes, new_mesh = query_new_mesh(path, choiceR)
-        print("\nWould you like to visualise the results? (1 for yes/0 for no)")
-        choiceRes = int(input("Choice: "))
-        if choiceRes == 1:
-            display_query(closest_meshes, new_qmesh=new_mesh)
+        elif choice1 == 2:
+            print("\nWhat is the path to the mesh you want to query?")
+            path = input("Path: ")
+            print("How many results would you like to have returned?")
+            choiceR = int(input("Number of results: "))
+            closest_meshes, new_mesh = query_new_mesh(path, choiceR)
+            print("\nWould you like to visualise the results? (1 for yes/0 for no)")
+            choiceRes = int(input("Choice: "))
+            if choiceRes == 1:
+                display_query(closest_meshes, new_qmesh=new_mesh)
+
+        print("\nQuerying meshes options:")
+        print("1) Query a mesh from the database.")
+        print("2) Load your own mesh to query.")
+        print("0) Exit this menu")
+
+        number_of_choices = 3
+        possible_choices = [i for i in range(number_of_choices)]
+        choice1 = ""
+        while isinstance(choice1, str):
+            choice1 = input("\nChoice: ")
+            try:
+                choice1 = int(choice1)
+            except ValueError:
+                print("Error! Please enter a number.")
+
+        while choice1 not in possible_choices:
+            print("\nError! Invalid choice")
+            choice1 = int(input("\nChoice: "))
 
 
 
 
 
-query_interface()
+#query_interface()
 
