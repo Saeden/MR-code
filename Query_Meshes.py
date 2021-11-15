@@ -122,7 +122,6 @@ def query_db_mesh_fast(mesh_name, distance_db, num_closest_meshes=10):
     return closest_meshes, mesh_name
 
 
-# to be modified?
 def compute_single_distance(mesh_feat, norm_params_path="./normalisation_parameters.csv",  normed_feats_path="./normalised_features.csv", bin_number=15):
     global_feats = ['area', 'volume', 'compactness', 'sphericity', 'diameter', 'aabbox_volume', 'rectangularity',
                     'eccentricity']
@@ -154,28 +153,28 @@ def compute_single_distance(mesh_feat, norm_params_path="./normalisation_paramet
 
         global_dist = 0
         hist_dist = []
-        if mesh_feat['file_name'] == feat2['file_name']:
+        """if mesh_feat['file_name'] == feat2['file_name']:
             dist_to_meshes[f"dist_to_{feat2['file_name']}"] = 0
-        else:
-            for gf in global_feats:
-                global_dist += (float(mesh_feat[gf])-float(feat2[gf]))**2
-            global_dist = np.sqrt(global_dist)
+        else:"""
+        for gf in global_feats:
+            global_dist += (float(mesh_feat[gf])-float(feat2[gf]))**2
+        global_dist = np.sqrt(global_dist)
 
-            for hf in hist_feats:
-                mesh_feat_hist = [mesh_feat[str(hf+str(i+1))] for i in range(bin_number)]
-                feat2_hist = [feat2[str(hf + str(i + 1))] for i in range(bin_number)]
+        for hf in hist_feats:
+            mesh_feat_hist = [mesh_feat[str(hf+str(i+1))] for i in range(bin_number)]
+            feat2_hist = [feat2[str(hf + str(i + 1))] for i in range(bin_number)]
 
-                avg = float(norm_params[str('avg_' + hf[:-1])])
-                std = float(norm_params[str('std_' + hf[:-1])])
-                dist = emd(mesh_feat_hist, feat2_hist)
+            #avg = float(norm_params[str('avg_' + hf[:-1])])
+            #std = float(norm_params[str('std_' + hf[:-1])])
+            dist = emd(mesh_feat_hist, feat2_hist)
 
-                normed_dist = (dist - avg) / std
+            normed_dist = dist#(dist - avg) / std
 
-                hist_dist.append(abs(normed_dist))
+            hist_dist.append(abs(normed_dist))
 
-            total_dist = (sum(hist_dist)+global_dist)/len(hist_dist)+1
+        total_dist = (sum(hist_dist)+global_dist)/(len(hist_dist)+1)
 
-            dist_to_meshes[f"dist_to_{feat2['file_name']}"] = total_dist
+        dist_to_meshes[f"dist_to_{feat2['file_name']}"] = total_dist
 
     print(f"Finished calculating distances for mesh {mesh_feat['file_name']}")
 
@@ -338,6 +337,7 @@ def test():
 
 #test()
 
+# ./ply_files/bone.ply
 query_interface()
 
 #compute_all_distances(save=True)
