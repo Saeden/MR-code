@@ -3,7 +3,6 @@ import csv
 import numpy as np
 import open3d as o3d
 from scipy.stats import wasserstein_distance as emd
-from scipy.spatial.distance import euclidean
 from Mesh_Reading import load_mesh
 from utils import get_path_from_shape
 from Compute_Features import compute_all_features_one_shape
@@ -281,7 +280,6 @@ def query_interface():
             else:
                 mesh_name = choiceQ
                 closest_meshes, norm_mesh = ann(query_mesh=mesh_name, feature_list="./normalised_features.csv", num_of_trees=1000, top_k=choiceR)
-                print(closest_meshes)
                 del closest_meshes[0]
                 del closest_meshes[-1]
 
@@ -351,7 +349,7 @@ def test():
 
 #test()
 
-# ./ply_files/bone.ply
-query_interface()
+# ./ply_files/colored_airplane.ply
+#query_interface()
 
 #compute_all_distances(save=True)

@@ -11,6 +11,13 @@ math
 numpy
 shutil
 copy
+pandas
+matplotlib
+random
+annoy
+time
+sklearn
+gurobipy (optional???)
 
 """
 from Mesh_Reading import load_mesh, view_mesh
@@ -18,17 +25,22 @@ from Statistics import *
 from utils import get_path, get_read_params, which_database
 from Mesh_refining import refine_single_mesh, refine_all_meshes
 from Normalization import *
-from Query_Meshes import query_interface
+from Query_Meshes import query_interface, compute_all_distances
+from Compute_Features import *
+from Standardise_Features import *
 
 
 def menu():
 
-    number_of_choices = 4
-    possible_choices = [str(i) for i in range(number_of_choices+1)]
+    number_of_choices = 8
+    possible_choices = [str(i) for i in range(number_of_choices)]
     print("\n\n1) Read and visualize a single shape")
     print("2) Re-meshing operations")
     print("3) Normalizing operations")
-    print("4) View/save statistics")
+    print("4) Feature extraction operations")
+    print("5) Compute and save custom distance from each shape to another in a database")
+    print("6) Evaluation operations")
+    print("7) View/save statistics")
     print("\nPress 0 to exit.")
     choice = input("Choice: ")
 
@@ -189,6 +201,103 @@ def choice_3():
 
 def choice_4():
 
+    number_of_choices = 8
+    possible_choices = [str(i) for i in range(number_of_choices)]
+    print("\n\n1) Extract and view only elementary global features on one shape")
+    print("2) Extract and view only histogram global features on one shape")
+    print("3) Extract and view all the features on one shape")
+    print("4) Extract and save all the features of all shapes in a database")
+    print("5) Standardise, weight and view the features of a shape")
+    print("6) Standardise, weight and save all the features of all shapes in a database")
+    print("7) Perform and save a volume differences analysis (fill_holes vs no fill_holes)")
+
+    print("\nPress 0 to go back.")
+    choice = input("\nChoice: ")
+
+    while choice not in possible_choices:
+        print("\nError! Invalid choice")
+        choice = input("\nChoice: ")
+
+    choice = int(choice)
+
+    if choice == 1:
+
+        print("\nOn which shape you want to extract the elementary global features?")
+
+        path = get_path()
+        mesh = load_mesh(path)
+        global_features = compute_global_features(mesh)
+
+        for feature, value in global_features.items():
+            print(feature + ': ' + str(value))
+
+    elif choice == 2:
+
+        print("\nOn which shape you want to extract the histogram global features?")
+
+        path = get_path()
+        mesh = load_mesh(path)
+        file_name = path[:path.rfind('/')]
+        global_features = compute_all_local_features(mesh, file_name)
+
+        for feature, value in global_features.items():
+            print(feature + ': ' + str(value))
+
+    elif choice == 3:
+
+        print("\nOn which shape you want to extract all the features?")
+
+        path = get_path()
+        mesh = load_mesh(path)
+        if '/' in path:
+            file_name = path[(path.rfind('/')+1):path.rfind('.')]
+        else:
+            file_name = path[(path.rfind('\\') + 1):path.rfind('.')]
+        global_features = compute_all_features_one_shape(mesh, file_name)
+
+        for feature, value in global_features.items():
+            print(feature + ': ' + str(value))
+
+    elif choice == 4:
+
+        compute_all_features_database()
+
+    elif choice == 5:
+
+        print("\nOn which shape you want to standardise, weight and view its features?")
+
+        shape = input("\nInsert the shape number (e.g. m99, or m1234, ...): ")
+
+        all_features = pd.read_csv('all_features.csv', header=0)
+        shape_features = all_features.loc[all_features['file_name'] == shape].to_dict('records')[0]
+
+        standardised_features = normalise_feat(shape_features, norm_param_path="./normalisation_parameters.csv", bin_number=15)
+
+        for feature, value in standardised_features.items():
+            print(feature + ': ' + str(value))
+
+    elif choice == 6:
+
+        feat_path = "./all_features.csv"
+        normalise_all_feats(feat_path, bin_number=15, save_feats=True, save_params=True)
+
+    elif choice == 7:
+
+        export_volume_differences()
+
+
+def choice_5():
+
+    compute_all_distances(norm_params_path="./normalisation_parameters.csv", bin_number=15, save=True)
+
+
+def choice_6():
+
+    print("To be implemented")
+
+
+def choice_7():
+
     number_of_choices = 2
     possible_choices = [str(i) for i in range(number_of_choices + 1)]
     print("\n\n1) Show statistics of one shape")
@@ -258,6 +367,15 @@ def main():
 
                 elif choice1 == 4:
                     choice_4()
+
+                elif choice == 5:
+                    choice_5()
+
+                elif choice == 6:
+                    choice_6()
+
+                elif choice1 == 7:
+                    choice_7()
 
                 choice1 = menu()
 

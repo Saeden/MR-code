@@ -21,7 +21,7 @@ search_k is held constant and vice versa. Basically it's recommended to set n_tr
 the amount of memory you can afford, and it's recommended to set search_k as large as possible given the time 
 constraints you have for the queries.
 
-Also, I wasn't able to find it, but I think that search_k=-1 means to use it as default (not sure though).
+search_k=-1 means default.
 """
 
 def ann(query_mesh, feature_list, num_of_trees=1000, top_k=25, search_k=-1, query=False, metric='euclidean'):
@@ -47,7 +47,7 @@ def ann(query_mesh, feature_list, num_of_trees=1000, top_k=25, search_k=-1, quer
                 mesh_feat.append(df_mesh[feature].item())
 
     else:
-        # it's a new shape, we have to normalize it, extract the features, normalized them and store them in a list
+        # it's a new shape, we have to re-mesh it, normalize it, extract the features, normalized them and store them in a list
         mesh = load_mesh(query_mesh)
         print("\nRe-meshing the shape.")
         ref_mesh = refine_single_mesh(mesh)
@@ -59,7 +59,7 @@ def ann(query_mesh, feature_list, num_of_trees=1000, top_k=25, search_k=-1, quer
         normed_feats = normalise_feat(mesh_feats)
         mesh_feat_raw = list(normed_feats.values())
 
-        mesh_feat = mesh_feat_raw[2:]  # remove the first 2 elements, namely, file_name and shape_number
+        mesh_feat = mesh_feat_raw[2:]  # remove the first 2 elements, namely, file_name and shape_number, from the list of features
 
     num_of_features = len(mesh_feat)
 
@@ -182,7 +182,3 @@ def ann_fast(query_mesh, features, map, num_of_trees=1000, top_k=10, search_k=-1
     similar_shapes = [(key, value) for (key, value) in similar_shapes_raw.items()]
 
     return similar_shapes
-
-
-
-

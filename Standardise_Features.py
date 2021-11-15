@@ -5,6 +5,7 @@ import os
 
 
 def normalise_all_feats(feat_path, bin_number=15, save_feats=False, save_params=True):
+
     feats = pd.read_csv(feat_path, header=0)
     norm_params = {}
     all_feats = []

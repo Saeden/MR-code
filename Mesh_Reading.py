@@ -106,13 +106,3 @@ def view_mesh(mesh, draw_coordinates=False, show_wireframe=True, aabbox=False):
         shape.append(box)
 
     o3d.visualization.draw_geometries(shape, mesh_show_wireframe=show_wireframe)
-
-
-
-
-
-
-
-
-
-

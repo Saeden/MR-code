@@ -153,7 +153,7 @@ def evaluate_ann(mesh_db_path="./all_features.csv", query_num=25):
 
         mesh_class = mesh_db['Class'].loc[mesh_db['file_name'] == mesh_name].item()
         closest_meshes = ann_fast(query_mesh=mesh_name, features=features, map=map,
-                                  num_of_trees=10000, top_k=query_num)
+                                  num_of_trees=1000, top_k=query_num)
 
         closest_mesh_classes = [mesh_db['Class'].loc[mesh_db['file_name'] == closest_meshes[i][0]].item()
                                 for i in range(len(closest_meshes))]
