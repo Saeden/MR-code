@@ -18,6 +18,7 @@ from Statistics import *
 from utils import get_path, get_read_params, which_database
 from Mesh_refining import refine_single_mesh, refine_all_meshes
 from Normalization import *
+from Query_Meshes import query_interface
 
 
 def menu():
@@ -57,7 +58,7 @@ def choice_2():
 
     number_of_choices = 2
     possible_choices = [str(i) for i in range(number_of_choices+1)]
-    print("\n\n1) Re-mesh one shape and visualize the result")
+    print("\n1) Re-mesh one shape and visualize the result")
     print("2) Re-mesh all shapes in a database")
     print("\nPress 0 to go back.")
     choice = input("\nChoice: ")
@@ -221,23 +222,64 @@ def choice_4():
 def main():
     print("Multimedia Retrieval application")
 
-    choice = menu()
+    number_of_choices = 2
+    possible_choices = [str(i) for i in range(number_of_choices + 1)]
+    print("\n\n1) Preprocess mesh menu")
+    print("2) Query mesh menu")
+
+    print("\nPress 0 to exit.")
+    choice = input("Choice: ")
+
+    while choice not in possible_choices:
+        print("Error! Invalid choice")
+        choice = input("\nChoice: ")
+
+    try:
+        choice = int(choice)
+    except ValueError:
+        print("Error! Please enter a number.")
 
     while choice != 0:
 
         if choice == 1:
-            choice_1()
+
+            choice1 = menu()
+
+            while choice1 != 0:
+
+                if choice1 == 1:
+                    choice_1()
+
+                elif choice1 == 2:
+                    choice_2()
+
+                elif choice1 == 3:
+                    choice_3()
+
+                elif choice1 == 4:
+                    choice_4()
+
+                choice1 = menu()
 
         elif choice == 2:
-            choice_2()
+            query_interface()
 
-        elif choice == 3:
-            choice_3()
+        number_of_choices = 2
+        possible_choices = [str(i) for i in range(number_of_choices + 1)]
+        print("\n\n1) Preprocess mesh menu")
+        print("2) Query mesh menu")
 
-        elif choice == 4:
-            choice_4()
+        print("\nPress 0 to exit.")
+        choice = input("Choice: ")
 
-        choice = menu()
+        while choice not in possible_choices:
+            print("Error! Invalid choice")
+            choice = input("\nChoice: ")
+
+        try:
+            choice = int(choice)
+        except ValueError:
+            print("Error! Please enter a number.")
 
 
 

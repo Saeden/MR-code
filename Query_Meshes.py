@@ -3,11 +3,13 @@ import csv
 import numpy as np
 import open3d as o3d
 from scipy.stats import wasserstein_distance as emd
+from scipy.spatial.distance import euclidean
 from Mesh_Reading import load_mesh
 from utils import get_path_from_shape
 from Compute_Features import compute_all_features_one_shape
 from Normalization import normalise_mesh_step2
 import os.path
+from ANN import ann
 
 
 def normalise_all_feats(feat_path, bin_number=15, save_feats=False, save_params=True):
@@ -16,6 +18,12 @@ def normalise_all_feats(feat_path, bin_number=15, save_feats=False, save_params=
     all_feats = []
     hist_feats = ['a3_', 'd1_', 'd2_', 'd3_', 'd4_']
     hist_dist = {'a3_':[], 'd1_':[], 'd2_':[], 'd3_':[], 'd4_':[]}
+
+    weights = [0.1, 0.025, 0.05, 0.05, 0.05, 0.05, 0.05, 0.1, 0.2, 0.025, 0.05, 0.1, 0.2]
+    #weights = [0.2, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 1, 0.8, 0.01, 0.05, 0.5, 0.4]
+    #weights = [0.125, 0.0125, 0.05, 0.05, 0.05, 0.05, 0.05, 0.1, 0.2, 0.0125, 0.05, 0.1, 0.2]
+    #weights = [1,1,1,1,1,1,1,1,1,1,1,1,1]
+
 
     avg_area = sum(feats['area'])/len(feats['area'])
     std_area = np.std(feats['area'])
@@ -58,7 +66,7 @@ def normalise_all_feats(feat_path, bin_number=15, save_feats=False, save_params=
     norm_params['std_eccent'] = std_eccent
 
 
-    print("Finding normalisation parameters.")
+    """print("Finding normalisation parameters.")
     printed = False
     for index1, row1 in feats.iterrows():
         completion = int(((index1+1)/len(feats.index))*100)
@@ -87,7 +95,7 @@ def normalise_all_feats(feat_path, bin_number=15, save_feats=False, save_params=
     norm_params['std_d3'] = np.std(hist_dist['d3_'])
 
     norm_params['avg_d4'] = sum(hist_dist['d4_']) / len(hist_dist['d4_'])
-    norm_params['std_d4'] = np.std(hist_dist['d4_'])
+    norm_params['std_d4'] = np.std(hist_dist['d4_'])"""
 
     printed = False
     print("\nStarting normalisation")
@@ -101,22 +109,22 @@ def normalise_all_feats(feat_path, bin_number=15, save_feats=False, save_params=
         norm_feats = {}
         norm_feats['file_name'] = row['file_name']
         norm_feats['shape_number'] = row['shape_number']
-        norm_feats['area'] = (row['area']-avg_area)/std_area
-        norm_feats['volume'] = (row['volume']-avg_volume)/std_volume
-        norm_feats['compactness'] = (row['compactness']-avg_compactness)/std_compactness
-        norm_feats['sphericity'] = (row['sphericity']-avg_sphericity)/std_sphericity
-        norm_feats['diameter'] = (row['diameter']-avg_diameter)/std_diameter
-        norm_feats['aabbox_volume'] = (row['aabbox_volume']-avg_aabb_vol)/std_aabb_vol
-        norm_feats['rectangularity'] = (row['rectangularity']-avg_rect)/std_rect
-        norm_feats['eccentricity'] = (row['eccentricity']-avg_eccent)/std_eccent
+        norm_feats['area'] = ((row['area']-avg_area)/std_area) * weights[0]
+        norm_feats['volume'] = ((row['volume']-avg_volume)/std_volume) * weights[1]
+        norm_feats['compactness'] = ((row['compactness']-avg_compactness)/std_compactness) * weights[2]
+        norm_feats['sphericity'] = ((row['sphericity']-avg_sphericity)/std_sphericity)  * weights[3]
+        norm_feats['diameter'] = ((row['diameter']-avg_diameter)/std_diameter) * weights[4]
+        norm_feats['aabbox_volume'] = ((row['aabbox_volume']-avg_aabb_vol)/std_aabb_vol)  * weights[5]
+        norm_feats['rectangularity'] = ((row['rectangularity']-avg_rect)/std_rect)  * weights[6]
+        norm_feats['eccentricity'] = ((row['eccentricity']-avg_eccent)/std_eccent)  * weights[7]
 
 
         for i in range(bin_number):
-            norm_feats[f"a3_{i + 1}"] = row[f"a3_{i + 1}"]
-            norm_feats[f"d1_{i + 1}"] = row[f"d1_{i + 1}"]
-            norm_feats[f"d2_{i + 1}"] = row[f"d2_{i + 1}"]
-            norm_feats[f"d3_{i + 1}"] = row[f"d3_{i + 1}"]
-            norm_feats[f"d4_{i + 1}"] = row[f"d4_{i + 1}"]
+            norm_feats[f"a3_{i + 1}"] = row[f"a3_{i + 1}"]  * weights[8]
+            norm_feats[f"d1_{i + 1}"] = row[f"d1_{i + 1}"]  * weights[9]
+            norm_feats[f"d2_{i + 1}"] = row[f"d2_{i + 1}"] * weights[10]
+            norm_feats[f"d3_{i + 1}"] = row[f"d3_{i + 1}"] * weights[11]
+            norm_feats[f"d4_{i + 1}"] = row[f"d4_{i + 1}"] * weights[12]
 
         all_feats.append(norm_feats)
 
@@ -178,28 +186,29 @@ def compute_all_distances(norm_params_path = "./normalisation_parameters.csv", b
         for feat2 in normed_feats:
             global_dist = 0
             hist_dist = []
-            if feat1['file_name'] == feat2['file_name']:
+            """if feat1['file_name'] == feat2['file_name']:
                 dist_to_meshes[f"dist_to_{feat2['file_name']}"] = 0
-            else:
-                for gf in global_feats:
-                    global_dist += (float(feat1[gf])-float(feat2[gf]))**2
-                global_dist = np.sqrt(global_dist)
+            else:"""
+            for gf in global_feats:
+                global_dist += (float(feat1[gf])-float(feat2[gf]))**2
+            global_dist = np.sqrt(global_dist)
 
-                for hf in hist_feats:
-                    feat1_hist = [feat1[str(hf+str(i+1))] for i in range(bin_number)]
-                    feat2_hist = [feat2[str(hf + str(i + 1))] for i in range(bin_number)]
+            for hf in hist_feats:
+                feat1_hist = [feat1[str(hf+str(i+1))] for i in range(bin_number)]
+                feat2_hist = [feat2[str(hf + str(i + 1))] for i in range(bin_number)]
 
-                    avg = float(norm_params[str('avg_'+hf[:-1])])
-                    std = float(norm_params[str('std_'+hf[:-1])])
-                    dist = emd(feat1_hist, feat2_hist)
+                #avg = float(norm_params[str('avg_'+hf[:-1])])
+                #std = float(norm_params[str('std_'+hf[:-1])])
+                #dist = emd(feat1_hist, feat2_hist)
+                dist = euclidean(feat1_hist, feat2_hist)
 
-                    normed_dist = (dist-avg)/std
+                normed_dist = dist#(dist-avg)/std
 
-                    hist_dist.append(abs(normed_dist))
+                hist_dist.append(abs(normed_dist))
 
-                total_dist = (sum(hist_dist)+global_dist)/len(hist_dist)+1
+            total_dist = (sum(hist_dist)+global_dist)/(len(hist_dist)+1)
 
-                dist_to_meshes[f"dist_to_{feat2['file_name']}"] = total_dist
+            dist_to_meshes[f"dist_to_{feat2['file_name']}"] = total_dist
 
         output.append(dist_to_meshes)
 
@@ -224,6 +233,18 @@ def query_db_mesh(mesh_name, num_closest_meshes=10):
     else:
         distance_db = pd.read_csv("./distance_to_meshes.csv", header=0)
 
+    closest_meshes = []
+    mesh_distances = distance_db.loc[distance_db['file_name'] == mesh_name].to_dict(orient='records')[0]
+    del mesh_distances['file_name']
+    del mesh_distances['shape_number']
+    #del mesh_distances['Class']
+    sorted_mesh_dist = {key:val for key, val in sorted(mesh_distances.items(), key=lambda item: item[1])}
+    for i in range(num_closest_meshes):
+        closest_meshes.append((list(sorted_mesh_dist)[i+1][8:], list(sorted_mesh_dist.values())[i+1]))
+
+    return closest_meshes, mesh_name
+
+def query_db_mesh_fast(mesh_name, distance_db, num_closest_meshes=10):
     closest_meshes = []
     mesh_distances = distance_db.loc[distance_db['file_name'] == mesh_name].to_dict(orient='records')[0]
     del mesh_distances['file_name']
@@ -413,7 +434,16 @@ def query_interface():
             choiceQ = input("Mesh: ")
             print("How many results would you like to have returned?")
             choiceR = int(input("Number of results: "))
-            closest_meshes, mesh_name = query_db_mesh(choiceQ, choiceR)
+            print("Which method would you like to use? (ANN or dist)")
+            choiceM = input("Method: ")
+            if choiceM == "dist":
+                closest_meshes, mesh_name = query_db_mesh(choiceQ, choiceR)
+            else:
+                mesh_name = choiceQ
+                closest_meshes = ann(query_mesh=mesh_name, feature_list="./normalised_features.csv",
+                                  num_of_trees=10000, top_k=choiceR)
+                del closest_meshes[0]
+                del closest_meshes[-1]
             print("\nThe results from the query are: ")
             print(closest_meshes)
             print("\nWould you like to visualise the results? (1 for yes/0 for no)")
@@ -454,6 +484,8 @@ def query_interface():
 
 
 
+#normalise_all_feats(feat_path='./all_features.csv', save_feats=True)
 
 #query_interface()
 
+#compute_all_distances(save=True)

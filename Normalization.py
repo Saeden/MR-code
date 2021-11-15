@@ -319,9 +319,9 @@ def flip_test(mesh):
     return mesh
 
 
-"""
 
-def testing():
+
+"""def testing():
 
     coord_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(origin=[0, 0, 0])
 
@@ -334,11 +334,11 @@ def testing():
 
     #mesh = load_mesh("./benchmark/db_refined/14/m1450/m1450.off") #f_x and f_y negative --> no inversion
     #mesh = load_mesh("./benchmark/db_refined/5/m556/m556.off") #f_x and f_z negative #flip only x axis --> no inversion
-    #mesh = load_mesh("./benchmark/db_refined/0/m84/m84.off") #f_y and f_z negative #seems to work --> no inversion
+    mesh = load_mesh("./benchmark/db_refined/0/m99/m99.off") #f_y and f_z negative #seems to work --> no inversion
 
 
     #mesh = load_mesh("./benchmark/db_refined/5/m558/m558.off")  # f_x, f_y and f_z negative #rotate around the y axis 180 degrees
-    mesh = load_mesh("./benchmark/db_refined/18/m1800/m1800.off") #all positive
+    #mesh = load_mesh("./benchmark/db_refined/18/m1800/m1800.off") #all positive
 
     print(f"Mesh barycenter before normalisation:{get_barycenter(mesh)}")
     mesh_norm = copy.deepcopy(mesh)
@@ -361,9 +361,9 @@ def testing():
     mesh_norm.compute_vertex_normals()
 
 
-    o3d.visualization.draw_geometries([mesh, mesh_norm, coord_frame])
+    o3d.visualization.draw_geometries([mesh, mesh_norm])
 
 
-#testing()
+testing()"""
 
-"""
+
