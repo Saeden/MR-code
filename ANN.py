@@ -24,7 +24,7 @@ constraints you have for the queries.
 Also, I wasn't able to find it, but I think that search_k=-1 means to use it as default (not sure though).
 """
 
-def ann(query_mesh, feature_list, num_of_trees=1000, top_k=10, search_k=-1, query=False, metric='euclidean'):
+def ann(query_mesh, feature_list, num_of_trees=1000, top_k=25, search_k=-1, query=False, metric='euclidean'):
     """
     query_mesh can either be a path to a new shape, or a name (like m271, etc.) of a shape we already know.
     whether to extract the features or retrieve them from the feature_list (ideally, the normalized version)

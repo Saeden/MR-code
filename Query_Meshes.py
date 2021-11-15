@@ -123,6 +123,7 @@ def query_db_mesh_fast(mesh_name, distance_db, num_closest_meshes=10):
 
 
 def compute_single_distance(mesh_feat, norm_params_path="./normalisation_parameters.csv",  normed_feats_path="./normalised_features.csv", bin_number=15):
+
     global_feats = ['area', 'volume', 'compactness', 'sphericity', 'diameter', 'aabbox_volume', 'rectangularity',
                     'eccentricity']
     hist_feats = ['a3_', 'd1_', 'd2_', 'd3_', 'd4_']
@@ -214,9 +215,6 @@ def query_new_mesh(mesh_path, num_closest_meshes=25):
         del closest_meshes[0]
         del closest_meshes[-1]
 
-    print("\nThe results from the query are: ")
-    print(closest_meshes)
-
     return closest_meshes, norm_mesh
 
 
@@ -282,15 +280,23 @@ def query_interface():
                 closest_meshes, mesh_name = query_db_mesh(choiceQ, choiceR)
             else:
                 mesh_name = choiceQ
-                closest_meshes = ann(query_mesh=mesh_name, feature_list="./normalised_features.csv", num_of_trees=1000, top_k=choiceR)
+                closest_meshes, norm_mesh = ann(query_mesh=mesh_name, feature_list="./normalised_features.csv", num_of_trees=1000, top_k=choiceR)
+                print(closest_meshes)
                 del closest_meshes[0]
                 del closest_meshes[-1]
+
             print("\nThe results from the query are: ")
-            print(closest_meshes)
+
+            j = 1
+            for i in closest_meshes:
+                print(str(j) + ") Shape: " + i[0] + ", distance: " + str(i[1]))
+                j += 1
+
             print("\nWould you like to visualise the results? (1 for yes/0 for no)")
             choiceRes = int(input("Choice: "))
             if choiceRes == 1:
                 display_query(closest_meshes, qmesh_name=mesh_name)
+
 
         elif choice1 == 2:
             print("\nWhat is the path to the mesh you want to query?")
@@ -298,6 +304,14 @@ def query_interface():
             print("How many results would you like to have returned?")
             choiceR = int(input("Number of results: "))
             closest_meshes, new_mesh = query_new_mesh(path, choiceR)
+
+            print("\nThe results from the query are: ")
+
+            j = 1
+            for i in closest_meshes:
+                print(str(j) + ") Shape: " + i[0] + ", distance: " + str(i[1]))
+                j += 1
+
             print("\nWould you like to visualise the results? (1 for yes/0 for no)")
             choiceRes = int(input("Choice: "))
             if choiceRes == 1:
@@ -329,7 +343,7 @@ def test():
     mesh_name = "m1000"
     feature_list = "./normalised_features.csv"
 
-    shapes = ann(mesh_name, feature_list, num_of_trees=1000, search_k=-1, top_k=25)
+    shapes, norm_mesh = ann(mesh_name, feature_list, num_of_trees=1000, search_k=-1, top_k=25)
 
     del shapes[0]  # deleting the first element, which is the query shape with distance 0, so to not display it
 
