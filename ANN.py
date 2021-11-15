@@ -3,7 +3,8 @@ from Mesh_Reading import *
 import pandas as pd
 from Compute_Features import compute_all_features_one_shape
 from Normalization import normalise_mesh_step2
-#from Query_Meshes import normalise_feat#, display_query
+from Standardise_Features import normalise_feat
+from Mesh_refining import refine_single_mesh
 from utils import *
 import csv
 
@@ -38,6 +39,8 @@ def ann(query_mesh, feature_list, num_of_trees=1000, top_k=10, search_k=-1, quer
         mesh_feat = []
 
         df_mesh = all_feat.loc[(all_feat['file_name'] == query_mesh)]
+        shape_path = get_path_from_shape(query_mesh, "db_ref_normalised")
+        norm_mesh = load_mesh(shape_path)
 
         for feature in df_mesh:
             if feature not in non_features and 'range' not in feature:
@@ -46,10 +49,17 @@ def ann(query_mesh, feature_list, num_of_trees=1000, top_k=10, search_k=-1, quer
     else:
         # it's a new shape, we have to normalize it, extract the features, normalized them and store them in a list
         mesh = load_mesh(query_mesh)
-        mesh = normalise_mesh_step2(mesh)
-        mesh_feats = compute_all_features_one_shape(mesh, "new_query_mesh")
-        #normed_feats = normalise_feat(mesh_feats)
-        #mesh_feat = list(normed_feats.values())
+        print("\nRe-meshing the shape.")
+        ref_mesh = refine_single_mesh(mesh)
+        print("\nNormalising mesh.")
+        norm_mesh = normalise_mesh_step2(ref_mesh)
+        print("\nComputing features for new shape.")
+        mesh_feats = compute_all_features_one_shape(norm_mesh, "m0000")
+        print("\nNormalising features of new shape.")
+        normed_feats = normalise_feat(mesh_feats)
+        mesh_feat_raw = list(normed_feats.values())
+
+        mesh_feat = mesh_feat_raw[2:]  # remove the first 2 elements, namely, file_name and shape_number
 
     num_of_features = len(mesh_feat)
 
@@ -58,7 +68,7 @@ def ann(query_mesh, feature_list, num_of_trees=1000, top_k=10, search_k=-1, quer
     mapping = {}
 
     # if we don't already have built a forest, let's build one
-    if not os.path.exists('./query_forest_' + metric +'_'+str(num_of_trees)+ '.ann'):
+    if not os.path.exists('./query_forest_' + metric + '_' + str(num_of_trees) + '.ann'):
 
         # create the annoy with a shape of the len of the features vector and the specified distance metric
         # metric can be "angular", "euclidean", "manhattan", "hamming", or "dot"
@@ -78,7 +88,7 @@ def ann(query_mesh, feature_list, num_of_trees=1000, top_k=10, search_k=-1, quer
         # build the ann forest with the specified number of trees and save it to then open it later when needed
         # by saving it, we will be faster when query because we don't have to construct again the whole forest
         a.build(num_of_trees)
-        a.save('query_forest_' + metric +'_'+str(num_of_trees)+ '.ann')
+        a.save('query_forest_' + metric + '_' + str(num_of_trees) + '.ann')
 
         # we also need to store the mapping in order to have the same mapping when loading the saved forest
         with open("mapping.csv", 'w', encoding='UTF8', newline='') as f:
@@ -101,7 +111,7 @@ def ann(query_mesh, feature_list, num_of_trees=1000, top_k=10, search_k=-1, quer
         # metric can be "angular", "euclidean", "manhattan", "hamming", or "dot"
         # the metric should be the same as the one used in the saved file.
         a = AnnoyIndex(num_of_features, metric)
-        a.load('query_forest_' + metric + '.ann')
+        a.load('query_forest_' + metric + '_' + str(num_of_trees) + '.ann')
         # load also the mapping and transform it in a dictionary, then assign the index 0 to the shape we want to query
         map = pd.read_csv("mapping.csv", header=0)
         for i in map:
@@ -118,10 +128,10 @@ def ann(query_mesh, feature_list, num_of_trees=1000, top_k=10, search_k=-1, quer
     for i, distance in list(zip(results[0], results[1])):
         similar_shapes_raw[mapping[i]] = distance
 
-    # transorm the dictionary in a tuple so to fit the display_query requirements
+    # transform the dictionary in a tuple so to fit the display_query requirements
     similar_shapes = [(key, value) for (key, value) in similar_shapes_raw.items()]
 
-    return similar_shapes
+    return similar_shapes, norm_mesh
 
 
 def ann_fast(query_mesh, features, map, num_of_trees=1000, top_k=10, search_k=-1, query=False, metric='euclidean'):
@@ -175,16 +185,4 @@ def ann_fast(query_mesh, features, map, num_of_trees=1000, top_k=10, search_k=-1
 
 
 
-def test():
-
-    mesh_name = "m99"
-    feature_list = "./normalised_features.csv"
-
-    shapes = ann(mesh_name, feature_list, num_of_trees=10000, search_k=-1, top_k=25)
-
-    del shapes[0]  # deleting the first element, which is the query shape with distance 0, so to not display it
-
-    #display_query(shapes, qmesh_name=mesh_name)
-
-#test()
 
