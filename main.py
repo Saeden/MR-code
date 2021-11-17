@@ -21,6 +21,7 @@ sklearn
 gurobipy (optional???)
 seaborn
 colorcet
+mplcursors
 
 """
 from Mesh_Reading import load_mesh, view_mesh
