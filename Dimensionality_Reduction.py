@@ -34,7 +34,7 @@ def dimensionality_reduction(feature_list):
     feature_list = all_feat.values.tolist()
 
     # perform the tsne dimensionality reduction
-    tsne = manifold.TSNE(init="pca", perplexity=19, learning_rate=200)
+    tsne = manifold.TSNE(init="pca", learning_rate=300)
     features_2D = tsne.fit_transform(feature_list)
 
     x = features_2D[:, 0]
@@ -67,6 +67,3 @@ def cursor_annotations(sel, mesh_names, classes):
 
     sel.annotation.set_text(f"Mesh: {mesh_names[sel.index]} | Class: {classes[sel.index]}")
     sel.annotation.get_bbox_patch().set(fc="powderblue", alpha=0.9)
-
-
-dimensionality_reduction("./normalised_features.csv")
