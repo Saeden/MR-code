@@ -13,11 +13,14 @@ shutil
 copy
 pandas
 matplotlib
+matplotlib.pyplot
 random
 annoy
 time
 sklearn
 gurobipy (optional???)
+seaborn
+colorcet
 
 """
 from Mesh_Reading import load_mesh, view_mesh
@@ -28,6 +31,7 @@ from Normalization import *
 from Query_Meshes import query_interface, compute_all_distances
 from Compute_Features import *
 from Standardise_Features import *
+from Dimensionality_Reduction import dimensionality_reduction
 
 
 def menu():
@@ -41,7 +45,7 @@ def menu():
     print("5) Compute and save custom distance from each shape to another in a database")
     print("6) Evaluation operations")
     print("7) View/save statistics")
-    print("\nPress 0 to exit.")
+    print("\nPress 0 to go back.")
     choice = input("Choice: ")
 
     while choice not in possible_choices:
@@ -298,10 +302,11 @@ def choice_6():
 
 def choice_7():
 
-    number_of_choices = 2
-    possible_choices = [str(i) for i in range(number_of_choices + 1)]
+    number_of_choices = 4
+    possible_choices = [str(i) for i in range(number_of_choices)]
     print("\n\n1) Show statistics of one shape")
     print("2) Save statistics of a database")
+    print("3) Plot the dimensionality reduction scatterplot")
     print("\nPress 0 to go back.")
     choice = input("\nChoice: ")
 
@@ -325,6 +330,9 @@ def choice_7():
         path = "./benchmark/" + database
 
         save_statistics(path, database)
+
+    elif choice == 3:
+        dimensionality_reduction("./normalised_features.csv")
 
 
 
@@ -398,7 +406,6 @@ def main():
             choice = int(choice)
         except ValueError:
             print("Error! Please enter a number.")
-
 
 
 if __name__ == "__main__":

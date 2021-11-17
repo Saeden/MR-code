@@ -8,21 +8,18 @@ import colorcet as cc
 
 def dimensionality_reduction(feature_list):
 
-    all_feat = pd.read_csv(feature_list, header=0)
+    print("Computing the scatterplot...")
 
+    all_feat = pd.read_csv(feature_list, header=0)
     non_features = ['file_name', 'shape_number']
 
     labels_dictionary = get_complete_classification()
-
     classes = []
 
     for mesh_name in all_feat['file_name'].values:
         classes.append(labels_dictionary[int(mesh_name[1:])])
 
-    print(classes)
-
     all_feat = all_feat.drop(columns=non_features)
-
     feature_list = all_feat.values.tolist()
 
     tsne = manifold.TSNE(init="pca", perplexity=19, learning_rate=200)
@@ -43,5 +40,8 @@ def dimensionality_reduction(feature_list):
     graph = sns.scatterplot(x="x", y="y", hue=classes, palette=palette, data=df)
     graph.legend(fontsize='6', loc='right', bbox_to_anchor=(1.13, 0.5), ncol=1)
 
-    plt.title("Dimensionality Reduction for 54 classes", fontdict={'fontsize' : 20})
+    plt.title("Dimensionality Reduction for 54 classes", fontdict={'fontsize': 20})
+
+    print("Scatterplot computed.")
+
     plt.show()
