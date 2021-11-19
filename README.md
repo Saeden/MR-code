@@ -20,7 +20,7 @@ Due to the open3d library, the project should run with Python 3.6, 3.7 or 3.8. L
    - Unix/macOS: python3 -m pip install -r requirements.txt
    - Windows: py -m pip install -r requirements.txt
    
-   If for some reasons that doesn't work, manually install all these libraries:
+   If for some reasons that doesn't work, manually install one by one (with pip inslall library_name or through the interpreter settings) all these libraries:
    - annoy==1.17.0
    - colorcet==2.0.6
    - matplotlib==3.4.3
