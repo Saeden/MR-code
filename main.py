@@ -431,6 +431,4 @@ def main():
 
 
 if __name__ == "__main__":
-    packages = find_packages()
-    print(packages)
     main()
