@@ -89,8 +89,6 @@ def view_mesh(mesh, draw_coordinates=False, show_wireframe=True, aabbox=False):
     """
 
     # compute the light of the mesh
-    #mesh.vertex_normals = o3d.utility.Vector3dVector([])
-    #mesh.triangle_normals = o3d.utility.Vector3dVector([])
     mesh.compute_vertex_normals()
     mesh.compute_triangle_normals()
 

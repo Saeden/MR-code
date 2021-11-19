@@ -1,27 +1,22 @@
 """
-To make the application work, install:
+To make the application works, install:
 
-trimesh
-pyglet
-scipy
-open3d (not sure if it works for python > 3.7.7)
-os
-csv
-math
-numpy
-shutil
-copy
-pandas
-matplotlib
-matplotlib.pyplot
-random
-annoy
-time
-sklearn
-gurobipy (optional???)
-seaborn
-colorcet
-mplcursors
+annoy==1.17.0
+colorcet==2.0.6
+matplotlib==3.4.3
+mplcursors==0.5
+numpy==1.21.2
+open3d==0.13.0
+pandas==1.3.3
+pyglet==1.5.21
+scikit-learn==0.24.2
+scipy==1.7.1
+seaborn==0.11.2
+setuptools==58.1.0
+trimesh==3.9.30
+
+It's best to use Python 3.7 so to not have problems with the open3d library
+(doesn't accept yet latest versions, like 3.8).
 
 """
 from Mesh_Reading import load_mesh, view_mesh
@@ -33,6 +28,8 @@ from Query_Meshes import query_interface, compute_all_distances
 from Compute_Features import *
 from Standardise_Features import *
 from Dimensionality_Reduction import dimensionality_reduction
+from Evaluation import *
+from setuptools import setup, find_packages
 
 
 def menu():
@@ -163,7 +160,6 @@ def choice_3():
 
         draw_coordinates, aabbox = get_read_params()
         view_mesh(new_mesh, draw_coordinates=draw_coordinates, show_wireframe=True, aabbox=aabbox)
-
 
     elif choice == 2:
 
@@ -298,7 +294,32 @@ def choice_5():
 
 def choice_6():
 
-    print("To be implemented")
+    number_of_choices = 5
+    possible_choices = [str(i) for i in range(number_of_choices)]
+    print("\n\n1) Evaluate the performance (metrics) of our own distance function")
+    print("2) Evaluate the performance (metrics) of ANN")
+    print("3) Compute the ROC curve and AUC for each class separately")
+    print("4) Compute the overall ROC curve and AUC")
+    print("\nPress 0 to go back.")
+    choice = input("\nChoice: ")
+
+    while choice not in possible_choices:
+        print("\nError! Invalid choice")
+        choice = input("\nChoice: ")
+
+    choice = int(choice)
+
+    if choice == 1:
+        evaluate_db()
+
+    elif choice == 2:
+        evaluate_ann()
+
+    elif choice == 3:
+        print("To be implemented")
+
+    elif choice == 4:
+        compute_roc_curve()
 
 
 def choice_7():
@@ -410,4 +431,6 @@ def main():
 
 
 if __name__ == "__main__":
+    packages = find_packages()
+    print(packages)
     main()

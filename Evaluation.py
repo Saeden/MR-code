@@ -25,7 +25,7 @@ def evaluate_db(mesh_db_path="./all_features.csv", query_num=25):
     db_size = len(mesh_db['file_name'])
     class_count_dict, class_metrics = class_count(mesh_db['Class'].tolist())
 
-    avg_metrics = {'avg_accuracy': 0, 'avg_sensitivity': 0, 'avg_specificity': 0, 'avg_precision':0, 'avg_f1':0}
+    avg_metrics = {'avg_accuracy': 0, 'avg_sensitivity': 0, 'avg_specificity': 0, 'avg_precision': 0, 'avg_f1': 0}
     class_acc = class_metrics.copy()
     class_sens = class_metrics.copy()
     class_spec = class_metrics.copy()
@@ -79,14 +79,12 @@ def evaluate_db(mesh_db_path="./all_features.csv", query_num=25):
         avg_metrics['avg_precision'] += precision
         class_prec[mesh_class] += precision
 
-
         if precision + sensitivity == 0:
             f1_score = 0
         else:
             f1_score = 2 * ((precision * sensitivity) / (precision + sensitivity))
         avg_metrics['avg_f1'] += f1_score
         class_f1sc[mesh_class] += f1_score
-
 
     for item in list(class_count_dict):
         class_acc[item] /= class_count_dict[item]
@@ -101,11 +99,10 @@ def evaluate_db(mesh_db_path="./all_features.csv", query_num=25):
     time2 = time.time()
     print(f"Time to evaluate: {time2-time1}")
 
-
     print("\nAverage metrics")
     print(avg_metrics)
 
-    """print("\nClass accuracy:")
+    print("\nClass accuracy:")
     print(class_acc)
     print("\nClass sensitivity:")
     print(class_sens)
@@ -114,19 +111,21 @@ def evaluate_db(mesh_db_path="./all_features.csv", query_num=25):
     print("\nClass precision")
     print(class_prec)
     print("\nClass F1-score")
-    print(class_f1sc)"""
+    print(class_f1sc)
 
     results = [avg_metrics, class_acc, class_sens, class_spec, class_prec, class_f1sc, "DIST_RESULTS"]
 
     return results
 
+
 def evaluate_ann(mesh_db_path="./all_features.csv", query_num=25):
+
     time1 = time.time()
     mesh_db = pd.read_csv(mesh_db_path, header=0)
     db_size = len(mesh_db['file_name'])
     class_count_dict, class_metrics = class_count(mesh_db['Class'].tolist())
 
-    avg_metrics = {'avg_accuracy': 0, 'avg_sensitivity': 0, 'avg_specificity': 0, 'avg_precision': 0, 'avg_f1':0}
+    avg_metrics = {'avg_accuracy': 0, 'avg_sensitivity': 0, 'avg_specificity': 0, 'avg_precision': 0, 'avg_f1': 0}
     class_acc = class_metrics.copy()
     class_sens = class_metrics.copy()
     class_spec = class_metrics.copy()
@@ -206,7 +205,7 @@ def evaluate_ann(mesh_db_path="./all_features.csv", query_num=25):
     print("\nAverage metrics")
     print(avg_metrics)
 
-    """print("\nClass accuracy:")
+    print("\nClass accuracy:")
     print(class_acc)
     print("\nClass sensitivity:")
     print(class_sens)
@@ -215,7 +214,7 @@ def evaluate_ann(mesh_db_path="./all_features.csv", query_num=25):
     print("\nClass precision")
     print(class_prec)
     print("\nClass F1-score")
-    print(class_f1sc)"""
+    print(class_f1sc)
 
     results = [avg_metrics, class_acc, class_sens, class_spec, class_prec, class_f1sc, "ANN_RESULTS"]
 
@@ -223,6 +222,7 @@ def evaluate_ann(mesh_db_path="./all_features.csv", query_num=25):
 
 
 def compute_roc_curve():
+
     query_nums = [5, 10, 25, 50, 75, 100, 150, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
 
     tpr_dist = [0]
@@ -231,12 +231,12 @@ def compute_roc_curve():
     fpr_ann = [0]
     all_dist_results = []
     all_ann_results = []
+
     for num in query_nums:
         result_dist = evaluate_db(query_num=num)
         all_dist_results.append((len(all_dist_results), result_dist))
         tpr_dist.append(result_dist[0]['avg_sensitivity'])
         fpr_dist.append(1-result_dist[0]['avg_specificity'])
-
 
         result_ann = evaluate_ann(query_num=num)
         all_ann_results.append((len(all_ann_results), result_ann))
@@ -247,7 +247,6 @@ def compute_roc_curve():
     fpr_dist.append(1)
     tpr_ann.append(1)
     fpr_ann.append(1)
-
 
     auc_dist = auc(fpr_dist, tpr_dist)
     auc_ann = auc(fpr_ann, tpr_ann)
@@ -261,18 +260,7 @@ def compute_roc_curve():
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-compute_roc_curve()
+#compute_roc_curve()
 #evaluate_db()
 #evaluate_ann()
 #[(closest_meshes[i][0], mesh_db['Class'].loc[mesh_db['file_name'] == closest_meshes[i][0]].item()) for i in range(len(closest_meshes))]

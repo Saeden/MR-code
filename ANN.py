@@ -31,7 +31,6 @@ def ann(query_mesh, feature_list, num_of_trees=1000, top_k=25, search_k=-1, quer
     is known by the parameter query: if True, the shape is new, if False, the shape is present in feature_list.
     """
 
-
     all_feat = pd.read_csv(feature_list, header=0)
 
     non_features = ['file_name', 'shape_number', 'Class']
@@ -137,6 +136,9 @@ def ann(query_mesh, feature_list, num_of_trees=1000, top_k=25, search_k=-1, quer
 
 
 def ann_fast(query_mesh, features, map, num_of_trees=1000, top_k=10, search_k=-1, metric='euclidean'):
+    """
+    Fast because each time is called, it should not read all the features from scratch, but they are passed as input.
+    """
 
     all_feat = features
     non_features = ['file_name', 'shape_number', 'Class']

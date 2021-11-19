@@ -13,10 +13,7 @@ def normalise_all_feats(feat_path, bin_number=15, save_feats=False, save_params=
     hist_dist = {'a3_': [], 'd1_': [], 'd2_': [], 'd3_': [], 'd4_': []}
 
     weights = get_weights()
-    #weights = [0.2, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 1, 0.8, 0.01, 0.05, 0.5, 0.4]
     #weights = [0.125, 0.0125, 0.05, 0.05, 0.05, 0.05, 0.05, 0.1, 0.2, 0.0125, 0.05, 0.1, 0.2]
-    #weights = [1,1,1,1,1,1,1,1,1,1,1,1,1]
-
 
     avg_area = sum(feats['area'])/len(feats['area'])
     std_area = np.std(feats['area'])
@@ -59,7 +56,9 @@ def normalise_all_feats(feat_path, bin_number=15, save_feats=False, save_params=
     norm_params['std_eccent'] = std_eccent
 
 
-    """print("Finding normalisation parameters.")
+    """
+    # other method, not using the weights:
+    print("Finding normalisation parameters.")
     printed = False
     for index1, row1 in feats.iterrows():
         completion = int(((index1+1)/len(feats.index))*100)
@@ -111,7 +110,6 @@ def normalise_all_feats(feat_path, bin_number=15, save_feats=False, save_params=
         norm_feats['rectangularity'] = ((row['rectangularity']-avg_rect)/std_rect) * weights[6]
         norm_feats['eccentricity'] = ((row['eccentricity']-avg_eccent)/std_eccent) * weights[7]
 
-
         for i in range(bin_number):
             norm_feats[f"a3_{i + 1}"] = row[f"a3_{i + 1}"] * weights[8]
             norm_feats[f"d1_{i + 1}"] = row[f"d1_{i + 1}"] * weights[9]
@@ -120,7 +118,6 @@ def normalise_all_feats(feat_path, bin_number=15, save_feats=False, save_params=
             norm_feats[f"d4_{i + 1}"] = row[f"d4_{i + 1}"] * weights[12]
 
         all_feats.append(norm_feats)
-
 
     if save_params:
         fieldnames = [i for i in norm_params]
@@ -184,5 +181,3 @@ def normalise_feat(feats, norm_param_path="./normalisation_parameters.csv", bin_
 def get_weights():
 
     return [0.1, 0.025, 0.05, 0.05, 0.05, 0.05, 0.05, 0.1, 0.2, 0.025, 0.05, 0.1, 0.2]
-
-#normalise_all_feats(feat_path='./all_features.csv', save_feats=True)

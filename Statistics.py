@@ -2,7 +2,7 @@ import numpy as np
 import open3d as o3d
 from Mesh_Reading import load_mesh, check_type
 from utils import get_complete_classification
-from Normalization import get_barycenter
+from Normalization import get_barycenter, eigenvectors_check, flip_test_check
 import csv
 import os
 from math import sqrt
@@ -35,6 +35,8 @@ def statistics_to_save(mesh, filename):
     max_aabbox_elongation = o3d.geometry.AxisAlignedBoundingBox.get_axis_aligned_bounding_box(mesh).get_max_extent()
     barycenter = get_barycenter(mesh)
     distance_from_origin = sqrt(barycenter[0] ** 2 + barycenter[1] ** 2 + barycenter[2] ** 2)
+    eigenvectors_value = eigenvectors_check(mesh)
+    flip_test_value = flip_test_check(mesh)
     is_watertight = mesh.is_watertight()
 
     stats['file_name'] = file_name
@@ -48,6 +50,8 @@ def statistics_to_save(mesh, filename):
     stats['max_abbox_elongation'] = max_aabbox_elongation
     stats['barycenter'] = barycenter
     stats['distance_from_origin'] = distance_from_origin
+    stats['eigenvectors_check'] = eigenvectors_value
+    stats['flip_test_check'] = flip_test_value
     stats['is_watertight'] = is_watertight
 
     return stats
@@ -67,7 +71,8 @@ def show_shape_statistics(mesh, filename):
     print("Max elongation of axis-aligned bounding box:", stats['max_abbox_elongation'])
     print("Barycenter coordinates:", stats['barycenter'])
     print("Distance from origin:", stats['distance_from_origin'])
-
+    print("Average of dot product between eigenvectors and corresponding axes:", stats['eigenvectors_check'])
+    print("Conjunction of signs for f_x, f_y and f_z during flip test:", stats['flip_test_check'])
 
     print("\n----------------- Additional info -----------------\n")
 

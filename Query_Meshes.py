@@ -48,9 +48,7 @@ def compute_all_distances(norm_params_path="./normalisation_parameters.csv", bin
         for feat2 in normed_feats:
             global_dist = 0
             hist_dist = []
-            """if feat1['file_name'] == feat2['file_name']:
-                dist_to_meshes[f"dist_to_{feat2['file_name']}"] = 0
-            else:"""
+
             for gf in global_feats:
                 global_dist += (float(feat1[gf])-float(feat2[gf]))**2
             global_dist = np.sqrt(global_dist)
@@ -59,12 +57,9 @@ def compute_all_distances(norm_params_path="./normalisation_parameters.csv", bin
                 feat1_hist = [feat1[str(hf + str(i + 1))] for i in range(bin_number)]
                 feat2_hist = [feat2[str(hf + str(i + 1))] for i in range(bin_number)]
 
-                #avg = float(norm_params[str('avg_'+hf[:-1])])
-                #std = float(norm_params[str('std_'+hf[:-1])])
                 dist = emd(feat1_hist, feat2_hist)
-                #dist = euclidean(feat1_hist, feat2_hist)
 
-                normed_dist = dist#(dist-avg)/std
+                normed_dist = dist
 
                 hist_dist.append(abs(normed_dist))
 
@@ -101,7 +96,9 @@ def query_db_mesh(mesh_name, num_closest_meshes=10):
     del mesh_distances['file_name']
     del mesh_distances['shape_number']
     #del mesh_distances['Class']
+
     sorted_mesh_dist = {key:val for key, val in sorted(mesh_distances.items(), key=lambda item: item[1])}
+
     for i in range(num_closest_meshes):
         closest_meshes.append((list(sorted_mesh_dist)[i+1][8:], list(sorted_mesh_dist.values())[i+1]))
 
@@ -109,12 +106,15 @@ def query_db_mesh(mesh_name, num_closest_meshes=10):
 
 
 def query_db_mesh_fast(mesh_name, distance_db, num_closest_meshes=10):
+
     closest_meshes = []
     mesh_distances = distance_db.loc[distance_db['file_name'] == mesh_name].to_dict(orient='records')[0]
     del mesh_distances['file_name']
     del mesh_distances['shape_number']
     #del mesh_distances['Class']
+
     sorted_mesh_dist = {key:val for key, val in sorted(mesh_distances.items(), key=lambda item: item[1])}
+
     for i in range(num_closest_meshes):
         closest_meshes.append((list(sorted_mesh_dist)[i+1][8:], list(sorted_mesh_dist.values())[i+1]))
 
@@ -153,9 +153,7 @@ def compute_single_distance(mesh_feat, norm_params_path="./normalisation_paramet
 
         global_dist = 0
         hist_dist = []
-        """if mesh_feat['file_name'] == feat2['file_name']:
-            dist_to_meshes[f"dist_to_{feat2['file_name']}"] = 0
-        else:"""
+
         for gf in global_feats:
             global_dist += (float(mesh_feat[gf])-float(feat2[gf]))**2
         global_dist = np.sqrt(global_dist)
@@ -164,11 +162,9 @@ def compute_single_distance(mesh_feat, norm_params_path="./normalisation_paramet
             mesh_feat_hist = [mesh_feat[str(hf+str(i+1))] for i in range(bin_number)]
             feat2_hist = [feat2[str(hf + str(i + 1))] for i in range(bin_number)]
 
-            #avg = float(norm_params[str('avg_' + hf[:-1])])
-            #std = float(norm_params[str('std_' + hf[:-1])])
             dist = emd(mesh_feat_hist, feat2_hist)
 
-            normed_dist = dist#(dist - avg) / std
+            normed_dist = dist
 
             hist_dist.append(abs(normed_dist))
 
@@ -203,9 +199,11 @@ def query_new_mesh(mesh_path, num_closest_meshes=25):
         mesh_distances = compute_single_distance(normed_feats, normed_feats_path="./normalised_features.csv")
         del mesh_distances['file_name']
         del mesh_distances['shape_number']
-        # del mesh_distances['Class']
+        #del mesh_distances['Class']
+
         closest_meshes = []
         sorted_mesh_dist = {key: val for key, val in sorted(mesh_distances.items(), key=lambda item: item[1])}
+
         for i in range(num_closest_meshes):
             closest_meshes.append((list(sorted_mesh_dist)[i + 1][8:], list(sorted_mesh_dist.values())[i + 1]))
     else:
@@ -222,6 +220,7 @@ def display_query(closest_meshes, qmesh_name=None, new_qmesh=None):
     the new mesh object should be normalised. closest_meshes should be a list of tuples ('mesh_name', distance)
     which is the query result.
     """
+
     num_meshes = len(closest_meshes)
     database = "db_ref_normalised"
     mesh_objs = []
@@ -240,7 +239,7 @@ def display_query(closest_meshes, qmesh_name=None, new_qmesh=None):
         cmesh = load_mesh(path)
         #x_transl = (i%5+1)*1.1
         #z_transl = -int(i/5)
-        cmesh = cmesh.translate(translation=[(i%5+1)*1.1, int(i/5), 0])
+        cmesh = cmesh.translate(translation=[(i % 5 + 1) * 1.1, int(i/5), 0])
         cmesh.compute_vertex_normals()
         mesh_objs.append(cmesh)
 
@@ -333,23 +332,3 @@ def query_interface():
         while choice1 not in possible_choices:
             print("\nError! Invalid choice")
             choice1 = int(input("\nChoice: "))
-
-
-
-def test():
-
-    mesh_name = "m1000"
-    feature_list = "./normalised_features.csv"
-
-    shapes, norm_mesh = ann(mesh_name, feature_list, num_of_trees=1000, search_k=-1, top_k=25)
-
-    del shapes[0]  # deleting the first element, which is the query shape with distance 0, so to not display it
-
-    display_query(shapes, qmesh_name=mesh_name)
-
-#test()
-
-# ./ply_files/colored_airplane.ply
-#query_interface()
-
-#compute_all_distances(save=True)

@@ -204,8 +204,6 @@ def create_overlapping_graphs(bins=15):
     size_l = 20
     size_r = 10
 
-    #classes = ['winged_vehicle aircraft', 'underwater_creature animal']
-
     for i in classes:
 
         df_class = df.loc[(df['Class'] == i)]

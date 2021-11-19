@@ -3,8 +3,6 @@ from utils import create_new_db, save_shape
 import open3d as o3d
 import numpy as np
 import os
-import trimesh as tm
-import copy
 
 
 def get_barycenter(mesh):
@@ -221,50 +219,26 @@ def align_eigenvectors(mesh):
 
     return mesh
 
-"""
 
-def flip_test(mesh):
+def eigenvectors_check(mesh):
 
-    print("Flipping the mesh....")
+    eig_vec, eig_val = compute_pca(mesh)
+    sort_eig_val = sorted(eig_val)
+    index_maj = np.where(eig_val == sort_eig_val[2])[0][0]
+    maj_eig_vec = eig_vec[:, index_maj]
 
-    f_x = 0
-    f_y = 0
-    f_z = 0
+    index_med = np.where(eig_val == sort_eig_val[1])[0][0]
+    med_eig_vec = eig_vec[:, index_med]
+    maj_cross_med = np.cross(maj_eig_vec, med_eig_vec)
 
-    for face in np.asarray(mesh.triangles):
-        a = np.asarray(mesh.vertices)[face[0]]
-        b = np.asarray(mesh.vertices)[face[1]]
-        c = np.asarray(mesh.vertices)[face[2]]
-        tri_center = np.asarray([(a[0]+b[0]+c[0])/3, (a[1]+b[1]+c[1])/3, (a[2]+b[2]+c[2])/3])
+    dot_x = np.absolute(np.dot(maj_eig_vec, [1, 0, 0]))
+    dot_y = np.absolute(np.dot(med_eig_vec, [0, 1, 0]))
+    dot_z = np.absolute(np.dot(maj_cross_med, [0, 0, 1]))
 
-        f_x += np.sign(tri_center[0])*(tri_center[0])**2
-        f_y += np.sign(tri_center[1])*(tri_center[1])**2
-        f_z += np.sign(tri_center[2])*(tri_center[2])**2
+    value = (dot_x + dot_y + dot_z) / 3
 
-    if np.sign(f_x) == -1:
-        center = get_barycenter(mesh)
-        R = np.asarray([[np.cos(np.pi), 0, np.sin(np.pi)],[0, 1, 0],[-np.sin(np.pi), 0, np.cos(np.pi)]])
-        mesh.rotate(R, center=center)
+    return value
 
-    if np.sign(f_y) == -1:
-        center = get_barycenter(mesh)
-        R = np.asarray([[1, 0, 0], [0, np.cos(np.pi), -np.sin(np.pi)], [0, np.sin(np.pi), np.cos(np.pi)]])
-        mesh.rotate(R, center=center)
-
-    if np.sign(f_z) == -1:
-        center = get_barycenter(mesh)
-        R = np.asarray([[np.cos(np.pi), 0, np.sin(np.pi)], [0, 1, 0], [-np.sin(np.pi), 0, np.cos(np.pi)]])
-        mesh.rotate(R, center=center)
-
-        center = get_barycenter(mesh)
-        R = np.asarray([[np.cos(-1/4 * np.pi), -np.sin(-1/4 * np.pi), 0], [np.sin(-1/4*np.pi), np.cos(-1/4*np.pi), 0], [0,0,1]])
-        mesh.rotate(R, center=center)
-
-    print("Mesh flipped.")
-
-    return mesh
-
-"""
 
 def flip_test(mesh):
     """
@@ -319,51 +293,23 @@ def flip_test(mesh):
     return mesh
 
 
+def flip_test_check(mesh):
 
+    f_x = 0
+    f_y = 0
+    f_z = 0
 
-"""def testing():
+    for face in np.asarray(mesh.triangles):
+        a = np.asarray(mesh.vertices)[face[0]]
+        b = np.asarray(mesh.vertices)[face[1]]
+        c = np.asarray(mesh.vertices)[face[2]]
+        tri_center = np.asarray([(a[0]+b[0]+c[0])/3, (a[1]+b[1]+c[1])/3, (a[2]+b[2]+c[2])/3])
 
-    coord_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(origin=[0, 0, 0])
+        f_x += np.sign(tri_center[0])*(tri_center[0])**2
+        f_y += np.sign(tri_center[1])*(tri_center[1])**2
+        f_z += np.sign(tri_center[2])*(tri_center[2])**2
 
-    #mesh = load_mesh("./benchmark/db_refined/14/m1450/m1450.off") #random mesh
-
-    #mesh = load_mesh("./benchmark/db_refined/11/m1112/m1112.off") #f_x negative #very not watertight, like not at allllll
-    #mesh = load_mesh("./benchmark/db_refined/6/m672/m672.off") #f_x negative --> needs inversion
-    #mesh = load_mesh("./benchmark/db_refined/0/m12/m12.off") #f_y negative --> needs inversion
-    #mesh = load_mesh("./benchmark/db_refined/17/m1777/m1777.off") #f_z negative --> needs inversion #rotate around y axis 180 degrees
-
-    #mesh = load_mesh("./benchmark/db_refined/14/m1450/m1450.off") #f_x and f_y negative --> no inversion
-    #mesh = load_mesh("./benchmark/db_refined/5/m556/m556.off") #f_x and f_z negative #flip only x axis --> no inversion
-    mesh = load_mesh("./benchmark/db_refined/0/m99/m99.off") #f_y and f_z negative #seems to work --> no inversion
-
-
-    #mesh = load_mesh("./benchmark/db_refined/5/m558/m558.off")  # f_x, f_y and f_z negative #rotate around the y axis 180 degrees
-    #mesh = load_mesh("./benchmark/db_refined/18/m1800/m1800.off") #all positive
-
-    print(f"Mesh barycenter before normalisation:{get_barycenter(mesh)}")
-    mesh_norm = copy.deepcopy(mesh)
-    mesh = translate_to_origin(mesh)
-    mesh = align_eigenvectors(mesh)
-    mesh.translate(translation=[-1.5, 0, 0])
-
-    mesh_norm = translate_to_origin(mesh_norm)
-    #view_mesh(mesh_norm, draw_coordinates=True)
-    #R = mesh.get_rotation_matrix_from_xyz((np.pi / 2, 0, np.pi / 4))
-    #mesh_norm.rotate(R, center=get_barycenter(mesh))
-    print(f"Mesh barycenter before rotation:{get_barycenter(mesh_norm)}")
-
-    mesh_copy = copy.deepcopy(mesh_norm)
-
-    mesh_norm = align_eigenvectors(mesh_norm)
-    mesh_norm = flip_test(mesh_norm)
-
-    mesh.compute_vertex_normals()
-    mesh_norm.compute_vertex_normals()
-
-
-    o3d.visualization.draw_geometries([mesh, mesh_norm])
-
-
-testing()"""
-
-
+    if f_x > 0 and f_y > 0 and f_z > 0:
+        return 1
+    else:
+        return -1

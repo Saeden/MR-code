@@ -24,12 +24,13 @@ def refine_single_mesh(mesh, target_faces_number=5000):
 
     actual_faces_number = len(mesh.triangles)
     splitpoint = int(target_faces_number * 0.4)  # eg: 5000 - x = 4x - 5000
-    # splitpoint identifies the value for which is the same refine or not refine the mesh, given the target.
-    # In fact, not all meshes with < 5000 faces should be refined, since for every value above 2000,
-    # if the refining will be done even only once, the number of faces obtained would be
-    # far from 5000 compared to the case that we haven't refined the original mesh.
-    # 2000 is the split point: 5000 - 2000 = 3000 and 2000 * 4 - 5000 = 3000.
-    # The distance from 5000 of the refined vs not refined is the same.
+
+    """splitpoint identifies the value for which is the same refine or not refine the mesh, given the target.
+    In fact, not all meshes with < 5000 faces should be refined, since for every value above 2000,
+    if the refining will be done even only once, the number of faces obtained would be
+    far from 5000 compared to the case that we haven't refined the original mesh.
+    2000 is the split point: 5000 - 2000 = 3000 and 2000 * 4 - 5000 = 3000.
+    The distance from 5000 of the refined vs not refined is the same."""
 
     if actual_faces_number < splitpoint:
 
@@ -39,11 +40,9 @@ def refine_single_mesh(mesh, target_faces_number=5000):
     # for the submeshing, the algorithm would take care about the target number
     # of faces and we don't have to calculate a splitpoint.
     elif actual_faces_number > target_faces_number:
-
         new_mesh = mesh.simplify_quadric_decimation(target_number_of_triangles=target_faces_number)
 
     else:
-
         new_mesh = mesh
 
     new_mesh.remove_duplicated_triangles()
