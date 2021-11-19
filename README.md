@@ -21,18 +21,18 @@ Due to the open3d library, the project should run with Python 3.6, 3.7 or 3.8. L
    - Windows: py -m pip install -r requirements.txt
    
    If for some reasons that doesn't work, manually install one by one (with pip inslall library_name or through the interpreter settings) all these libraries:
-   - annoy==1.17.0
-   - colorcet==2.0.6
-   - matplotlib==3.4.3
-   - mplcursors==0.5
-   - numpy==1.21.2
-   - open3d==0.13.0
-   - pandas==1.3.3
-   - pyglet==1.5.21
-   - scikit-learn==0.24.2
-   - scipy==1.7.1
-   - seaborn==0.11.2
-   - setuptools==58.1.0
-   - trimesh==3.9.30
+   - annoy
+   - colorcet
+   - matplotlib
+   - mplcursors
+   - numpy
+   - open3d
+   - pandas
+   - pyglet
+   - scikit-learn
+   - scipy
+   - seaborn
+   - setuptools
+   - trimesh
 
 5) Run main.py
