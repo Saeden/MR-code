@@ -299,7 +299,7 @@ def choice_6():
     print("\n\n1) Evaluate the performance (metrics) of our own distance function")
     print("2) Evaluate the performance (metrics) of ANN")
     print("3) Compute the ROC curve and AUC for each class separately")
-    print("4) Compute the overall ROC curve and AUC")
+    print("4) Compute the ROC curve and AUC for all classes and average metrics")
     print("\nPress 0 to go back.")
     choice = input("\nChoice: ")
 
@@ -316,7 +316,7 @@ def choice_6():
         evaluate_ann()
 
     elif choice == 3:
-        print("To be implemented")
+        compute_class_roc_curve()
 
     elif choice == 4:
         compute_roc_curve()
@@ -363,7 +363,7 @@ def main():
 
     number_of_choices = 2
     possible_choices = [str(i) for i in range(number_of_choices + 1)]
-    print("\n\n1) Preprocess mesh menu")
+    print("\n\n1) Extra operations menu")
     print("2) Query mesh menu")
 
     print("\nPress 0 to exit.")
@@ -398,10 +398,10 @@ def main():
                 elif choice1 == 4:
                     choice_4()
 
-                elif choice == 5:
+                elif choice1 == 5:
                     choice_5()
 
-                elif choice == 6:
+                elif choice1 == 6:
                     choice_6()
 
                 elif choice1 == 7:
@@ -414,7 +414,7 @@ def main():
 
         number_of_choices = 2
         possible_choices = [str(i) for i in range(number_of_choices + 1)]
-        print("\n\n1) Preprocess mesh menu")
+        print("\n\n1) Extra operations menu")
         print("2) Query mesh menu")
 
         print("\nPress 0 to exit.")

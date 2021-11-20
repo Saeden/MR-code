@@ -4,6 +4,7 @@ from sklearn.metrics import auc
 import pandas as pd
 import time
 import matplotlib.pyplot as plt
+from copy import deepcopy as dcopy
 
 
 def class_count(class_list):
@@ -19,25 +20,25 @@ def class_count(class_list):
     return count_dict, class_metrics
 
 
-def evaluate_db(mesh_db_path="./all_features.csv", query_num=25):
+def evaluate_db(mesh_db_path="./all_features.csv", query_num=25, print_all=True):
     time1 = time.time()
     mesh_db = pd.read_csv(mesh_db_path, header=0)
     db_size = len(mesh_db['file_name'])
     class_count_dict, class_metrics = class_count(mesh_db['Class'].tolist())
 
-    avg_metrics = {'avg_accuracy': 0, 'avg_sensitivity': 0, 'avg_specificity': 0, 'avg_precision': 0, 'avg_f1': 0}
-    class_acc = class_metrics.copy()
-    class_sens = class_metrics.copy()
-    class_spec = class_metrics.copy()
-    class_prec = class_metrics.copy()
-    class_f1sc = class_metrics.copy()
+    avg_metrics = {'avg_accuracy': 0, 'avg_sensitivity': 0, 'avg_specificity': 0, 'avg_precision':0, 'avg_f1':0}
+    class_acc = dcopy(class_metrics)
+    class_sens = dcopy(class_metrics)
+    class_spec = dcopy(class_metrics)
+    class_prec = dcopy(class_metrics)
+    class_f1sc = dcopy(class_metrics)
     del class_metrics
 
     distance_db = pd.read_csv("./distance_to_meshes.csv", header=0)
 
     index = 0
     printed = False
-
+    print('\n')
     for mesh_name in mesh_db['file_name']:
         #truth_table = {'True_Pos': 0, 'True_Neg': 0, 'False_Pos': 0, 'False_Neg': 0}
         truth_table = [0, 0, 0, 0]  #[TP, TN, FP, FN]
@@ -99,38 +100,41 @@ def evaluate_db(mesh_db_path="./all_features.csv", query_num=25):
     time2 = time.time()
     print(f"Time to evaluate: {time2-time1}")
 
-    print("\nAverage metrics")
+
+    print(f"\nAverage metrics DIST for q-size: {query_num}")
     print(avg_metrics)
 
-    print("\nClass accuracy:")
-    print(class_acc)
-    print("\nClass sensitivity:")
-    print(class_sens)
-    print("\nClass specificity:")
-    print(class_spec)
-    print("\nClass precision")
-    print(class_prec)
-    print("\nClass F1-score")
-    print(class_f1sc)
+
+    if print_all:
+        print("\nClass accuracy:")
+        print(class_acc)
+        print("\nClass sensitivity:")
+        print(class_sens)
+        print("\nClass specificity:")
+        print(class_spec)
+        print("\nClass precision")
+        print(class_prec)
+        print("\nClass F1-score")
+        print(class_f1sc)
 
     results = [avg_metrics, class_acc, class_sens, class_spec, class_prec, class_f1sc, "DIST_RESULTS"]
 
     return results
 
 
-def evaluate_ann(mesh_db_path="./all_features.csv", query_num=25):
+def evaluate_ann(mesh_db_path="./all_features.csv", query_num=25, print_all=True):
 
     time1 = time.time()
     mesh_db = pd.read_csv(mesh_db_path, header=0)
     db_size = len(mesh_db['file_name'])
     class_count_dict, class_metrics = class_count(mesh_db['Class'].tolist())
 
-    avg_metrics = {'avg_accuracy': 0, 'avg_sensitivity': 0, 'avg_specificity': 0, 'avg_precision': 0, 'avg_f1': 0}
-    class_acc = class_metrics.copy()
-    class_sens = class_metrics.copy()
-    class_spec = class_metrics.copy()
-    class_prec = class_metrics.copy()
-    class_f1sc = class_metrics.copy()
+    avg_metrics = {'avg_accuracy': 0, 'avg_sensitivity': 0, 'avg_specificity': 0, 'avg_precision': 0, 'avg_f1':0}
+    class_acc = dcopy(class_metrics)
+    class_sens = dcopy(class_metrics)
+    class_spec = dcopy(class_metrics)
+    class_prec = dcopy(class_metrics)
+    class_f1sc = dcopy(class_metrics)
     del class_metrics
 
     map = pd.read_csv("mapping.csv", header=0)
@@ -138,7 +142,7 @@ def evaluate_ann(mesh_db_path="./all_features.csv", query_num=25):
 
     index = 0
     printed = False
-
+    print('\n')
     for mesh_name in mesh_db['file_name']:
         #truth_table = {'True_Pos': 0, 'True_Neg': 0, 'False_Pos': 0, 'False_Neg': 0}
         truth_table = [0, 0, 0, 0]  #[TP, TN, FP, FN]
@@ -202,19 +206,20 @@ def evaluate_ann(mesh_db_path="./all_features.csv", query_num=25):
     time2 = time.time()
     print(f"Time to evaluate: {time2-time1}")
 
-    print("\nAverage metrics")
+    print(f"\nAverage metrics ANN for q-size: {query_num}")
     print(avg_metrics)
 
-    print("\nClass accuracy:")
-    print(class_acc)
-    print("\nClass sensitivity:")
-    print(class_sens)
-    print("\nClass specificity:")
-    print(class_spec)
-    print("\nClass precision")
-    print(class_prec)
-    print("\nClass F1-score")
-    print(class_f1sc)
+    if print_all:
+        print("\nClass accuracy:")
+        print(class_acc)
+        print("\nClass sensitivity:")
+        print(class_sens)
+        print("\nClass specificity:")
+        print(class_spec)
+        print("\nClass precision")
+        print(class_prec)
+        print("\nClass F1-score")
+        print(class_f1sc)
 
     results = [avg_metrics, class_acc, class_sens, class_spec, class_prec, class_f1sc, "ANN_RESULTS"]
 
@@ -222,45 +227,175 @@ def evaluate_ann(mesh_db_path="./all_features.csv", query_num=25):
 
 
 def compute_roc_curve():
+    print("Computing the overall ROC curve for ANN and DIST methods and the ROC curve for all classes.")
+    print("This function plots all classes of each method in a graph for each method.")
+    query_nums = [1, 5, 10, 25, 50, 75, 100, 150, 200, 300, 400, 500, 600, 700, 800, 900, 1000,
+                  1100, 1200, 1300, 1400, 1500, 1600, 1700, 1750]
 
-    query_nums = [5, 10, 25, 50, 75, 100, 150, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+    class_list = pd.read_csv("all_features.csv", header=0)['Class'].tolist()
+    _, class_tpr_fpr = class_count(class_list)
 
-    tpr_dist = [0]
-    fpr_dist = [0]
-    tpr_ann = [0]
-    fpr_ann = [0]
+    for key in list(class_tpr_fpr):
+        class_tpr_fpr[key] = [[], []]
+
+    dist_class_tpr_fpr = dcopy(class_tpr_fpr)
+    ann_class_tpr_fpr = dcopy(class_tpr_fpr)
+
+
+    tpr_dist = []
+    fpr_dist = []
+    tpr_ann = []
+    fpr_ann = []
     all_dist_results = []
     all_ann_results = []
 
     for num in query_nums:
-        result_dist = evaluate_db(query_num=num)
+        result_dist = evaluate_db(query_num=num, print_all=False)
         all_dist_results.append((len(all_dist_results), result_dist))
         tpr_dist.append(result_dist[0]['avg_sensitivity'])
         fpr_dist.append(1-result_dist[0]['avg_specificity'])
 
-        result_ann = evaluate_ann(query_num=num)
+
+
+        result_ann = evaluate_ann(query_num=num, print_all=False)
         all_ann_results.append((len(all_ann_results), result_ann))
         tpr_ann.append(result_ann[0]['avg_sensitivity'])
         fpr_ann.append(1-result_ann[0]['avg_specificity'])
 
-    tpr_dist.append(1)
-    fpr_dist.append(1)
-    tpr_ann.append(1)
-    fpr_ann.append(1)
+
+        for key in list(dist_class_tpr_fpr):
+            dist_class_sens = result_dist[2][key]
+            dist_class_spec = result_dist[3][key]
+            dist_class_tpr_fpr[key][0].append(dist_class_sens)
+            dist_class_tpr_fpr[key][1].append(1-dist_class_spec)
+
+            ann_class_sens = result_ann[2][key]
+            ann_class_spec = result_ann[3][key]
+            ann_class_tpr_fpr[key][0].append(ann_class_sens)
+            ann_class_tpr_fpr[key][1].append(1 - ann_class_spec)
+
 
     auc_dist = auc(fpr_dist, tpr_dist)
     auc_ann = auc(fpr_ann, tpr_ann)
-
-    plt.plot(fpr_dist, tpr_dist, label="AUC_que=" + str(auc_dist))
+    plot0 = plt.figure(1)
+    plt.plot(fpr_dist, tpr_dist, label="AUC_dist=" + str(auc_dist))
     plt.plot(fpr_ann, tpr_ann,  label="AUC_ann=" + str(auc_ann))
     plt.ylabel('Sensitivity')
     plt.xlabel('1-Specificity')
     plt.legend(loc=4)
+    plt.title(label="ROC curve for ANN and DIST")
+
+
+    class_auc = []
+    plot1 = plt.figure(2)
+    for key in list(dist_class_tpr_fpr):
+        tpr = dist_class_tpr_fpr[key][0]
+        fpr = dist_class_tpr_fpr[key][1]
+        this_auc = auc(fpr, tpr)
+        class_auc.append((key, this_auc))
+        plt.plot(fpr, tpr, label=key)
+
+    print(class_auc)
+
+    plt.ylabel('Sensitivity')
+    plt.xlabel('1-Specificity')
+    plt.title(label="ROC curve for all classes (DIST)")
+
+    class_auc = []
+    plot2 = plt.figure(3)
+    for key in list(ann_class_tpr_fpr):
+        tpr = ann_class_tpr_fpr[key][0]
+        fpr = ann_class_tpr_fpr[key][1]
+        this_auc = auc(fpr, tpr)
+        class_auc.append((key, this_auc))
+        plt.plot(fpr, tpr, label=key)
+
+    print(class_auc)
+    plt.ylabel('Sensitivity')
+    plt.xlabel('1-Specificity')
+    plt.title(label="ROC curve for all classes (ANN)")
     plt.show()
 
 
 
+
+def compute_class_roc_curve():
+    print("Computing the ROC curves for all classes with the ANN and DIST methods.")
+    print("This function makes a graph for each class, plotting the ANN method against the DIST method.")
+    query_nums = [1, 5, 10, 25, 50, 75, 100, 150, 200, 300, 400, 500, 600, 700, 800, 900, 1000,
+                  1100, 1200, 1300, 1400, 1500, 1600, 1700, 1750]
+
+    class_list = pd.read_csv("all_features.csv", header=0)['Class'].tolist()
+    _, class_tpr_fpr = class_count(class_list)
+
+    for key in list(class_tpr_fpr):
+        class_tpr_fpr[key] = [[], []]
+
+    dist_class_tpr_fpr = dcopy(class_tpr_fpr)
+    ann_class_tpr_fpr = dcopy(class_tpr_fpr)
+
+    all_dist_results = []
+    all_ann_results = []
+
+    for num in query_nums:
+        result_dist = evaluate_db(query_num=num, print_all=False)
+        all_dist_results.append((len(all_dist_results), result_dist))
+
+
+
+        result_ann = evaluate_ann(query_num=num, print_all=False)
+        all_ann_results.append((len(all_ann_results), result_ann))
+
+
+        for key in list(dist_class_tpr_fpr):
+            dist_class_sens = result_dist[2][key]
+            dist_class_spec = result_dist[3][key]
+            dist_class_tpr_fpr[key][0].append(dist_class_sens)
+            dist_class_tpr_fpr[key][1].append(1-dist_class_spec)
+
+            ann_class_sens = result_ann[2][key]
+            ann_class_spec = result_ann[3][key]
+            ann_class_tpr_fpr[key][0].append(ann_class_sens)
+            ann_class_tpr_fpr[key][1].append(1 - ann_class_spec)
+
+    class_auc = []
+    for index, key in enumerate(list(dist_class_tpr_fpr)):
+        tpr = dist_class_tpr_fpr[key][0]
+        fpr = dist_class_tpr_fpr[key][1]
+        this_auc = auc(fpr, tpr)
+        class_auc.append((f"{key}_DIST", this_auc))
+        plot = plt.figure(index)
+        plt.plot(fpr, tpr, label=f"ROC_DIST: {key}")
+
+        tpr_ann = ann_class_tpr_fpr[key][0]
+        fpr_ann = ann_class_tpr_fpr[key][1]
+        this_auc_ann = auc(fpr_ann, tpr_ann)
+        class_auc.append((f"{key}_ANN", this_auc_ann))
+        plt.plot(fpr_ann, tpr_ann, label=f"ROC_ANN: {key}")
+
+        plt.ylabel('Sensitivity')
+        plt.xlabel('1-Specificity')
+        plt.title(label=f"ROC curve class: {key}")
+
+    print(class_auc)
+    plt.show()
+
+
+    print(class_auc)
+    plt.ylabel('Sensitivity')
+    plt.xlabel('1-Specificity')
+    plt.title(label="ROC curve for all classes (ANN)")
+    plt.show()
+
+
+
+
+
+
+
+
+
 #compute_roc_curve()
-#evaluate_db()
-#evaluate_ann()
+#evaluate_db(query_num=25)
+#evaluate_ann(query_num=25)
 #[(closest_meshes[i][0], mesh_db['Class'].loc[mesh_db['file_name'] == closest_meshes[i][0]].item()) for i in range(len(closest_meshes))]
