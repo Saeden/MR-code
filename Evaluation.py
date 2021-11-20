@@ -100,10 +100,8 @@ def evaluate_db(mesh_db_path="./all_features.csv", query_num=25, print_all=True)
     time2 = time.time()
     print(f"Time to evaluate: {time2-time1}")
 
-
     print(f"\nAverage metrics DIST for q-size: {query_num}")
     print(avg_metrics)
-
 
     if print_all:
         print("\nClass accuracy:")
@@ -192,7 +190,6 @@ def evaluate_ann(mesh_db_path="./all_features.csv", query_num=25, print_all=True
         avg_metrics['avg_f1'] += f1_score
         class_f1sc[mesh_class] += f1_score
 
-
     for item in list(class_count_dict):
         class_acc[item] /= class_count_dict[item]
         class_sens[item] /= class_count_dict[item]
@@ -241,7 +238,6 @@ def compute_roc_curve():
     dist_class_tpr_fpr = dcopy(class_tpr_fpr)
     ann_class_tpr_fpr = dcopy(class_tpr_fpr)
 
-
     tpr_dist = []
     fpr_dist = []
     tpr_ann = []
@@ -255,13 +251,10 @@ def compute_roc_curve():
         tpr_dist.append(result_dist[0]['avg_sensitivity'])
         fpr_dist.append(1-result_dist[0]['avg_specificity'])
 
-
-
         result_ann = evaluate_ann(query_num=num, print_all=False)
         all_ann_results.append((len(all_ann_results), result_ann))
         tpr_ann.append(result_ann[0]['avg_sensitivity'])
         fpr_ann.append(1-result_ann[0]['avg_specificity'])
-
 
         for key in list(dist_class_tpr_fpr):
             dist_class_sens = result_dist[2][key]
@@ -274,7 +267,6 @@ def compute_roc_curve():
             ann_class_tpr_fpr[key][0].append(ann_class_sens)
             ann_class_tpr_fpr[key][1].append(1 - ann_class_spec)
 
-
     auc_dist = auc(fpr_dist, tpr_dist)
     auc_ann = auc(fpr_ann, tpr_ann)
     plot0 = plt.figure(1)
@@ -284,7 +276,6 @@ def compute_roc_curve():
     plt.xlabel('1-Specificity')
     plt.legend(loc=4)
     plt.title(label="ROC curve for ANN and DIST")
-
 
     class_auc = []
     plot1 = plt.figure(2)
@@ -317,8 +308,6 @@ def compute_roc_curve():
     plt.show()
 
 
-
-
 def compute_class_roc_curve():
     print("Computing the ROC curves for all classes with the ANN and DIST methods.")
     print("This function makes a graph for each class, plotting the ANN method against the DIST method.")
@@ -341,11 +330,8 @@ def compute_class_roc_curve():
         result_dist = evaluate_db(query_num=num, print_all=False)
         all_dist_results.append((len(all_dist_results), result_dist))
 
-
-
         result_ann = evaluate_ann(query_num=num, print_all=False)
         all_ann_results.append((len(all_ann_results), result_ann))
-
 
         for key in list(dist_class_tpr_fpr):
             dist_class_sens = result_dist[2][key]
@@ -380,22 +366,8 @@ def compute_class_roc_curve():
     print(class_auc)
     plt.show()
 
-
     print(class_auc)
     plt.ylabel('Sensitivity')
     plt.xlabel('1-Specificity')
     plt.title(label="ROC curve for all classes (ANN)")
     plt.show()
-
-
-
-
-
-
-
-
-
-#compute_roc_curve()
-#evaluate_db(query_num=25)
-#evaluate_ann(query_num=25)
-#[(closest_meshes[i][0], mesh_db['Class'].loc[mesh_db['file_name'] == closest_meshes[i][0]].item()) for i in range(len(closest_meshes))]
